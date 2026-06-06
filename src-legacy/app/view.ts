@@ -10,12 +10,12 @@ export function renderTabBar(tabs: Map<string, any>, activeTabId: string | null)
 }
 
 export function renderMenu(items: typeof MENU_ITEMS) {
-  const grid = document.querySelector<HTMLDivElement>('#menu-grid');
-  if (!grid) return;
-  grid.innerHTML = items.map(item => `
-    <div class="group flex flex-col items-center justify-center aspect-square p-6 bg-zinc-800 border border-zinc-700 rounded-2xl cursor-pointer transition-all hover:-translate-y-1 hover:bg-zinc-700 hover:border-indigo-500 hover:shadow-xl" onclick="window.dispatchMenuAction('${item.id}')">
-      <div class="text-4xl mb-3 group-hover:scale-110 transition-transform">${item.icon}</div>
-      <div class="text-sm font-medium text-zinc-300 group-hover:text-white">${item.label}</div>
+  const list = document.querySelector<HTMLDivElement>('#menu-list');
+  if (!list) return;
+  list.innerHTML = items.map(item => `
+    <div class="flex items-center gap-4 p-4 bg-zinc-800 border border-zinc-700 rounded-lg cursor-pointer hover:bg-zinc-700 hover:border-indigo-500 transition-colors" onclick="window.dispatchMenuAction('${item.id}')">
+      <div class="text-2xl">${item.icon}</div>
+      <div class="font-medium text-zinc-300">${item.label}</div>
     </div>
   `).join('');
 }
@@ -91,7 +91,7 @@ export function initApp() {
                 <span id="arrow-wasm-section" class="transition-transform duration-200 text-zinc-500">▼</span>
               </div>
               <div id="wasm-section" class="p-6 border-t border-zinc-700">
-                <div id="menu-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6"></div>
+                <div id="menu-list" class="flex flex-col gap-2"></div>
               </div>
             </div>
 

@@ -2,6 +2,7 @@
 node_modules/
 .pnpm-store/
 
+**/target
 wasm-src/target/
 
 # Build Outputs

@@ -1,43 +1,16 @@
-# BAEX Framework Roadmap
+# BAEX Framework TODOs
 
-## Completed
-- Core Infrastructure
-  - Shared TypeScript/Rust interfaces
-  - WASM bridge implementation
-  - Centralized WASM lifecycle management
-- Stratified IR System
-  - Implementation of HLIR and LLIR
-  - Zod-based IR validation pipeline
-  - Anomaly detection and high-priority reporting
-- Reactivity Model
-  - ReactiveStateProxy with Immer
-  - Fine-grained subscription system for components
-  - Automatic IR dispatch on state change
-- Developer Experience
-  - @Component, @State, and @WasmMethod decorators
-  - Tailwind CSS integration for rapid UI development
-- Quality Assurance
-  - Comprehensive Vitest suite for IR and Reactivity
-  - Rust unit tests for IR generation logic
+## Architectural Maturity
+- [ ] Implement automatic TypeScript type generation from Rust structs (e.g., using `ts-rs`) to ensure interface sync.
+- [ ] Implement runtime schema validation for IR command payloads using `zod`.
+- [ ] Refactor initialization lifecycle to be explicit (e.g., `BAEX.ready()`) rather than relying on DOM events.
 
-## Future Development
+## Error Handling & Debugging
+- [ ] Centralize IR error handling to map Rust anomalies to user-friendly UI feedback.
+- [ ] Improve cross-layer stack tracing to debug failures across JS/WASM boundaries.
 
-### Phase 1: Advanced Reactivity
-- Full integration of @State decorator with ReactiveStateProxy
-- Bi-directional state synchronization between Rust and TypeScript
-- Computed state properties in the proxy layer
+## Performance
+- [ ] Evaluate reducing serialization overhead for high-frequency bridge calls.
 
-### Phase 2: Routing & Navigation
-- WASM-powered router for high-performance page transitions
-- Declarative route definitions in Rust
-- IR-based navigation triggers
-
-### Phase 3: Tooling & DX
-- Type-safe automated serialization for complex data structures
-- IDE support for IR bundle definitions
-- Enhanced debugging tools for the IR pipeline
-
-### Phase 4: Optimization & Scaling
-- Server-Side Rendering (SSR) support for Rust-managed state
-- Code-splitting for WASM modules
-- Fine-grained memory management for large-scale applications
+## Component System
+- [ ] Simplify component registration and state subscription mechanics.

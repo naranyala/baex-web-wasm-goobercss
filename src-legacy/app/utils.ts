@@ -1,7 +1,10 @@
-export function updateResult(text: string) {
+export function updateResult(text: string, code?: string) {
   const el = document.querySelector<HTMLDivElement>('#execution-log');
   if (el) {
-    el.innerText = text;
+    el.innerHTML = `
+      <div class="mb-2">${text.replace(/\n/g, '<br>')}</div>
+      ${code ? `<pre class="p-2 bg-zinc-950 rounded text-xs text-indigo-300 font-mono overflow-x-auto">${code}</pre>` : ''}
+    `;
     el.classList.remove('opacity-50');
     el.classList.add('opacity-100');
   }

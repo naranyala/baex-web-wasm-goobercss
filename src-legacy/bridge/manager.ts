@@ -1,6 +1,15 @@
 import { BAEX } from '../core/baex';
 import init, { greet, process_action } from '../../public/wasm/wasm_logic';
 
+const exposedFunctions: { name: string; description: string }[] = [
+  { name: 'greet', description: 'Displays an alert greeting.' },
+  { name: 'process_action', description: 'Processes an action and dispatches IR.' }
+];
+
+export function getExposedFunctions() {
+  return exposedFunctions;
+}
+
 export async function setupBridge() {
   try {
     await BAEX.initWasm(init);

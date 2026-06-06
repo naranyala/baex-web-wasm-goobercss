@@ -2,6 +2,9 @@ import { BAEX } from './baex';
 
 export abstract class BaexComponent extends HTMLElement {
   protected activeSubscriptions: Array<() => void> = [];
+  
+  // New: Simple state binding
+  protected state: any = {};
 
   constructor() {
     super();
@@ -19,7 +22,9 @@ export abstract class BaexComponent extends HTMLElement {
     this.activeSubscriptions = [];
   }
 
-  attributeChangedCallback() {
+  // Simplified: Auto-re-render on state change
+  setState(newState: any) {
+    this.state = { ...this.state, ...newState };
     this.update();
   }
 
@@ -29,10 +34,9 @@ export abstract class BaexComponent extends HTMLElement {
     }
   }
 
-  protected subscribeToState(key: string, callback: (val: any) => void) {
+  protected subscribeToState(key: string) {
     const unsub = BAEX.subscribe(key, (val) => {
-      callback(val);
-      this.update();
+      this.setState({ [key]: val });
     });
     this.activeSubscriptions.push(unsub);
   }

@@ -1,7 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+  --bg-color: #18181b;
+  --text-color: #ffffff;
 }
 
 body {
@@ -9,8 +15,9 @@ body {
   display: block;
   min-width: 320px;
   min-height: 100vh;
-  padding-top: 60px; /* Adjust for fixed tab-bar */
-  background-color: #18181b; /* zinc-900 */
+  padding-top: 60px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 #app {

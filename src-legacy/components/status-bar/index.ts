@@ -33,12 +33,18 @@ export class StatusBar extends HTMLElement {
           color: #a1a1aa; /* zinc-400 */
           z-index: 100;
         }
-        .stat { margin-right: 1.5rem; }
-        .val { color: #818cf8; font-weight: bold; }
+        .stat { margin-right: 1.5rem; cursor: pointer; }
+        .stat:hover { color: white; }
       </style>
-      <div class="stat">Primitives: <span class="val">${primitives}</span></div>
-      <div class="stat">WASM Functions: <span class="val">${wasmFuncs}</span></div>
+      <div class="stat" id="status-click">Primitives: <span class="val">${primitives}</span></div>
+      <div class="stat" id="status-click">WASM Functions: <span class="val">${wasmFuncs}</span></div>
     `;
+
+    this.shadowRoot.querySelectorAll('#status-click').forEach(el => {
+      el.addEventListener('click', () => {
+        this.dispatchEvent(new CustomEvent('show-modal', { bubbles: true, composed: true }));
+      });
+    });
   }
 }
 
