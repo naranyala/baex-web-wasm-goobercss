@@ -2,12 +2,22 @@ use tracing::{info, warn};
 use thiserror::Error;
 use crate::ir::*;
 
+/// Errors that can occur during the generation of IR bundles.
 #[derive(Error, Debug)]
 pub enum IRError {
-    #[error("Unknown action ID: {0}")]
+    /// The requested action identifier was not found in the registry.
     UnknownAction(String),
 }
 
+/// Maps a high-level action identifier to a specific sequence of IR instructions.
+/// This function serves as the "Brain" of the system, deciding what happens 
+/// when a specific business action is triggered.
+///
+/// # Arguments
+/// * `action_id` - The unique string identifier for the action.
+///
+/// # Returns
+/// A Result containing the IRBundle for the action or an IRError if not found.
 pub fn get_ir_bundle(action_id: &str) -> Result<IRBundle, IRError> {
     info!("Generating IR for action: {}", action_id);
     match action_id {

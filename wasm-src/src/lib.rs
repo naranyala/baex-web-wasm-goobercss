@@ -16,6 +16,7 @@ extern "C" {
 
 #[wasm_bindgen(start)]
 pub fn start() {
+    /// Initializes the WASM runtime and sets up the tracing subscriber for browser logging.
     let config = WASMLayerConfigBuilder::new().build();
     tracing::subscriber::set_global_default(
         Registry::default().with(WASMLayer::new(config))
@@ -64,6 +65,13 @@ fn process_ir_logic(command: IRCommand) -> IRResult {
     }
 }
 
+/// Processes an IR command and returns the corresponding result.
+///
+/// # Arguments
+/// * `command_json` - A JSON string representing the IR command.
+///
+/// # Returns
+/// A JsValue containing the IRResult.
 #[wasm_bindgen]
 pub fn process_ir(command_json: &str) -> Result<JsValue, JsValue> {
     info!("IR Command received: {}", command_json);
@@ -82,6 +90,13 @@ pub fn process_ir(command_json: &str) -> Result<JsValue, JsValue> {
     Ok(serde_wasm_bindgen::to_value(&result)?)
 }
 
+/// Processes a specific action by its ID.
+///
+/// # Arguments
+/// * `action_id` - The unique identifier of the action to process.
+///
+/// # Returns
+/// A JsValue containing the resulting IRBundle.
 #[wasm_bindgen]
 pub fn process_action(action_id: &str) -> JsValue {
     match get_ir_bundle(action_id) {
@@ -101,16 +116,35 @@ pub fn process_action(action_id: &str) -> JsValue {
     }
 }
 
+/// Greets the user by displaying an alert in the browser.
+///
+/// # Arguments
+/// * `name` - The name of the person to greet.
 #[wasm_bindgen]
 pub fn greet(name: &str) {
     alert(&format!("Hello, {}!", name));
 }
 
+/// Adds two integers together.
+///
+/// # Arguments
+/// * `a` - First integer.
+/// * `b` - Second integer.
+///
+/// # Returns
+/// The sum of a and b.
 #[wasm_bindgen]
 pub fn add(a: i32, b: i32) -> i32 {
     a + b
 }
 
+/// Calculates the Nth Fibonacci number.
+///
+/// # Arguments
+/// * `n` - The position in the Fibonacci sequence.
+///
+/// # Returns
+/// The Fibonacci number at position `n`.
 #[wasm_bindgen]
 pub fn fibonacci(n: i32) -> i32 {
     fibonacci_internal(n)

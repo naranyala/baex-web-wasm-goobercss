@@ -4,14 +4,28 @@ import { IRBundle } from './generated/IRBundle';
 import { pipe } from './Functional';
 import { BAEXError, BAEXErrorCode, mapIRError } from './errors';
 
+/**
+ * Type definition for a bridge call.
+ * Maps a specific command type and payload to a promise of a result.
+ */
 export type BridgeCall = <T extends IRCommand['type'], P = any>(type: T, payload: P) => Promise<any>;
 
 /**
- * A functional wrapper for the WASM bridge.
- * Instead of a singleton, we provide a creator that allows for 
- * different bridge configurations (e.g. for testing).
+ * A factory that creates a WASM bridge instance.
+ * This handles the serialization of IR commands into JSON, invokes the WASM logic,
+ * and maps any resulting WASM errors back into TypeScript BAEXError instances.
+ * 
+ * @returns An object containing the `call` and `action` methods.
  */
 export const createBridge = () => {
+  /**
+   * Executes a specific IR command via the WASM bridge.
+   * 
+   * @param type - The type of IR command to execute.
+   * @param payload - The data payload associated with the command.
+   * @returns A promise resolving to the command result payload.
+   * @throws {BAEXError} If the WASM logic returns an error or a bridge failure occurs.
+   */
   const call: BridgeCall = async (type, payload) => {
     try {
       const command: IRCommand = { type, payload } as any;
@@ -35,6 +49,13 @@ export const createBridge = () => {
     }
   };
 
+  /**
+   * Triggers a predefined action by its identifier and retrieves the resulting IR bundle.
+   * 
+   * @param actionId - The unique identifier of the action to be processed.
+   * @returns A promise resolving to the IRBundle containing the result.
+   * @throws {BAEXError} If the action fails to process in the WASM core.
+   */
   const action = async (actionId: string): Promise<IRBundle> => {
     try {
       return (await process_action(actionId)) as IRBundle;
@@ -50,4 +71,7 @@ export const createBridge = () => {
   return { call, action };
 };
 
+/**
+ * The default singleton instance of the WASM Bridge.
+ */
 export const WasmBridge = createBridge();

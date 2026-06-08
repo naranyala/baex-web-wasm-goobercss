@@ -1,12 +1,22 @@
 import L from 'leaflet';
 
+/**
+ * Definition of a demo item in the application's showcase.
+ */
 export interface DemoItem {
+  /** Icon representing the demo (e.g., emoji). */
   icon: string;
+  /** Display label for the demo. */
   label: string;
+  /** Unique identifier for the demo. */
   id: string;
+  /** Activation function that renders the demo into the dynamic view. */
   action: () => void;
 }
 
+/**
+ * Registry of all available demo components and tools.
+ */
 export const demoRegistry: DemoItem[] = [
   {
     icon: '🗺️',
@@ -196,6 +206,12 @@ export const demoRegistry: DemoItem[] = [
   }
 ];
 
+/**
+ * Retrieves the activation function for a given demo ID.
+ * 
+ * @param id - The unique identifier of the demo.
+ * @returns The action function if found, otherwise null.
+ */
 export function rebuildDemoAction(id: string): (() => void) | null {
   const demo = demoRegistry.find(d => d.id === id);
   return demo ? demo.action : null;

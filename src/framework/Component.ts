@@ -2,29 +2,57 @@ import { createReactiveState } from './ReactiveState';
 import { globalBus } from './EventBus';
 import { createSignal, Signal } from './Signal';
 
+/**
+ * Defines lifecycle hooks that can be registered for a BAEX component.
+ */
 export interface LifecycleHooks {
+  /** Called when the component is first added to the DOM. */
   onMount?: () => void;
+  /** Called whenever the component's state changes and a re-render occurs. */
   onUpdate?: () => void;
+  /** Called when the component is removed from the DOM. */
   onDestroy?: () => void;
+  /** Called when one of the observed attributes is changed. */
   onAttributeChange?: (name: string, oldValue: string | null, newValue: string | null) => void;
 }
 
+/**
+ * Configuration for a BAEX component.
+ */
 export interface ComponentConfig<S extends object> {
+  /** The custom element name (e.g., 'baex-button'). */
   name: string;
+  /** The initial reactive state of the component. */
   initialState: S;
+  /** The render function that produces HTML based on the current state. */
   render: (state: S, helpers: ComponentHelpers<S>) => string;
+  /** Optional reducer function for handling state updates via dispatch. */
   reducer?: (state: S, action: any) => S;
+  /** Optional lifecycle hooks for the component. */
   hooks?: LifecycleHooks;
+  /** List of attribute names that should trigger onAttributeChange. */
   observedAttributes?: string[];
 }
 
+/**
+ * Helper methods provided to the render function to interact with the component.
+ */
 export interface ComponentHelpers<S> {
+  /** Updates the component state. Can be a partial state or a reducer-like function. */
   setState: (update: Partial<S> | ((prev: S) => S)) => void;
+  /** Dispatches an action to the component's reducer. */
   dispatch: (action: any) => void;
+  /** Emits a custom event via the global EventBus. */
   emit: <T>(event: string, data: T) => void;
+  /** Subscribes to an event via the global EventBus. */
   on: <T>(event: string, listener: (data: T) => void) => () => void;
 }
 
+/**
+ * Registers a new custom element as a BAEX component.
+ * 
+ * @param config - The configuration for the component including its name, state, and render logic.
+ */
 export function defineComponent<S extends object>(config: ComponentConfig<S>) {
   const { name, initialState, render, hooks, observedAttributes } = config;
 
@@ -138,6 +166,10 @@ export function defineComponent<S extends object>(config: ComponentConfig<S>) {
       on: this.on,
     };
 
+    /**
+     * Triggers a re-render of the component by executing the render function
+     * and updating the shadow DOM.
+     */
     update() {
       const html = render(this.state, this.helpers);
       if (this.shadow.innerHTML !== html) {
@@ -165,6 +197,9 @@ export function defineComponent<S extends object>(config: ComponentConfig<S>) {
       });
     }
 
+    /**
+     * Returns the current reactive state of the component.
+     */
     getComponentState(): S {
       return this.state;
     }

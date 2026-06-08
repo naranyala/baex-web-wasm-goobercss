@@ -9,7 +9,9 @@
     "dev": "rsbuild",
     "format": "biome format --write",
     "preview": "rsbuild preview",
-    "test": "vitest"
+    "test": "vitest",
+    "docs:gen": "bun run ./docs-gen/src/index.ts src docs",
+    "docs:serve": "bun x serve docs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.15",

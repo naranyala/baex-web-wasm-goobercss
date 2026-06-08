@@ -1,6 +1,11 @@
 import { defineComponent } from './framework/Component.js';
 import { crudButton, addButton, formPanel, formField, formActions, splitPanel, tableContainer } from './styles.js';
 
+/**
+ * Registers the `<table-view>` custom element.
+ * This component provides a data-grid interface for browsing and editing 
+ * table data from the database, including inline editing and CRUD operations.
+ */
 export function registerTableView() {
   defineComponent({
     name: 'table-view',

@@ -12,6 +12,14 @@ import * as tableOps from './table-operations.js';
 import { demoRegistry, rebuildDemoAction } from './demos/index.js';
 import { showBaexDevTools } from './devtools.js';
 
+/**
+ * Performs a fuzzy search over a list of items based on their label.
+ * The search matches if all characters of the query appear in the label in order.
+ * 
+ * @param query - The search string.
+ * @param items - A list of items containing a 'label' property.
+ * @returns A filtered list of items that match the fuzzy search criteria.
+ */
 export function fuzzySearch(query: string, items: any[]) {
   const q = query.toLowerCase().split('').filter(c => c !== ' ');
   return items.filter(item => {
@@ -56,6 +64,12 @@ function rebuildTabAction(id: string, label: string): (() => void) | null {
   return null;
 }
 
+/**
+ * Initializes the application shell, sets up the main UI layout, 
+ * and restores previous session state from storage.
+ * 
+ * This is the main entry point for the application's runtime setup.
+ */
 export async function initApp() {
   const app = document.getElementById('app');
   if (!app) return;
@@ -240,6 +254,9 @@ export async function initApp() {
   renderTabBar();
 }
 
+/**
+ * Bootstraps the application by waiting for the DOM to be fully loaded.
+ */
 export function startApp() {
   document.addEventListener('DOMContentLoaded', async () => {
     await initApp();

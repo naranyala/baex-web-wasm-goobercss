@@ -2,6 +2,10 @@ import { css } from 'goober';
 import { WasmBridge } from './framework/WasmBridge.js';
 import { modalBackdrop, modalContent } from './styles.js';
 
+/**
+ * Styles for the BAEX Developer Tools inspector.
+ * Uses a dark-themed, mono-spaced aesthetic to mimic system logs.
+ */
 export const devToolsStyles = {
   header: css`
     display: flex;
@@ -43,6 +47,10 @@ export const devToolsStyles = {
   `
 };
 
+/**
+ * Renders and displays the BAEX Developer Tools inspector.
+ * The inspector provides a visual trace of the IR pipeline and a listing of available Bridge APIs.
+ */
 export function showBaexDevTools() {
   const app = document.querySelector<HTMLDivElement>('#app');
   if (!app) return;
@@ -132,7 +140,7 @@ export function showBaexDevTools() {
       </div>
 
       <div style="margin-bottom: 1.5rem;">
-        <h3 style="font-size: 0.8rem; color: var(--zinc-400); margin-bottom: 0.75rem; font-family: 'SF Mono', 'Fira Code', monospace;">BRIDGE API</h3>
+        <h3 style="font-size: 0.8rem; color: var(--zinc-400; margin-bottom: 0.75rem; font-family: 'SF Mono', 'Fira Code', monospace;">BRIDGE API</h3>
         ${createApiHtml()}
       </div>
 
