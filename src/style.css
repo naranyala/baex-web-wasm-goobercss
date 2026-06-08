@@ -65,3 +65,15 @@ body {
 input, button, select, textarea {
   font-family: inherit;
 }
+
+@media (hover: none) and (pointer: coarse) {
+  .tab, button, [role="button"], .tab-bar {
+    touch-action: manipulation;
+  }
+}
+
+@media (max-width: 480px) {
+  #app {
+    overflow-x: hidden;
+  }
+}

@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use ts_rs::{TS, Config};
+use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Debug, TS)]
 #[ts(export)]

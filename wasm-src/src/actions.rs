@@ -6,8 +6,6 @@ use crate::ir::*;
 pub enum IRError {
     #[error("Unknown action ID: {0}")]
     UnknownAction(String),
-    #[error("Serialization error: {0}")]
-    Serialization(String),
 }
 
 pub fn get_ir_bundle(action_id: &str) -> Result<IRBundle, IRError> {
