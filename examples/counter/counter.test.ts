@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ReactiveStateProxy } from '../../src/state/proxy';
+import { EXBA } from '../../src/framework/core/exba';
+import { ReactiveStateProxy } from '../../src/framework/state/proxy';
 
 describe('Counter Example', () => {
   beforeEach(() => {

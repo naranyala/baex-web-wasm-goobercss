@@ -19,8 +19,8 @@ function resolveElement(id: string): HTMLElement | null {
 }
 
 export class IRProcessor {
-  private static pendingInstructions: LLIR[] = [];
-  private static retryTimer: ReturnType<typeof setTimeout> | null = null;
+  static pendingInstructions: LLIR[] = [];
+  static retryTimer: ReturnType<typeof setTimeout> | null = null;
 
   static process(bundle: any) {
     const result = IRBundleSchema.safeParse(bundle);
@@ -37,12 +37,16 @@ export class IRProcessor {
     const validatedBundle = result.data;
     EXBA.log('IR_PIPELINE_START', { version: validatedBundle.version });
 
+    // 1. Process High-Level Effects (HLIR)
     if (validatedBundle.hlir) {
-      EXBA.log('IR_HLIR_ANALYSIS', validatedBundle.hlir);
+      validatedBundle.hlir.forEach((effect: any) => {
+        IRProcessor.executeEffect(effect);
+      });
     }
 
     EXBA.log('IR_LLIR_DISPATCH', validatedBundle.llir);
 
+    // 2. Process Low-Level Instructions (LLIR)
     const failed: LLIR[] = [];
     for (const inst of validatedBundle.llir) {
       const ok = IRProcessor.execute(inst);
@@ -54,6 +58,40 @@ export class IRProcessor {
     }
 
     EXBA.log('IR_PIPELINE_END', validatedBundle.version);
+  }
+
+  private static executeEffect(effect: any) {
+    switch (effect.type) {
+      case 'UpdateState': {
+        (window as any).wasm_update_app_state(effect.payload.patch);
+        return;
+      }
+      case 'Navigate': {
+        const router = (window as any).appRouter;
+        if (router) router.navigate(effect.payload.path);
+        return;
+      }
+      case 'Notify': {
+        console.log(
+          `%c[EXBA-NOTIFY] [${effect.payload.level}] ${effect.payload.msg}`,
+          'color: #818cf8',
+        );
+        return;
+      }
+      case 'InvokeJS': {
+        const { func, args } = effect.payload;
+        const fn = (window as any)[func];
+        if (typeof fn === 'function') {
+          const parsedArgs = typeof args === 'string' ? JSON.parse(args) : args;
+          fn(...parsedArgs);
+        }
+        return;
+      }
+      case 'SyncData': {
+        console.log(`%c[EXBA-SYNC] ${effect.payload.key}`, 'color: #fbbf24');
+        return;
+      }
+    }
   }
 
   private static execute(inst: LLIR): boolean {
@@ -70,6 +108,36 @@ export class IRProcessor {
         const el = resolveElement(inst.id);
         if (!el) return false;
         el.setAttribute(inst.attr, inst.value);
+        return true;
+      }
+      case 'RemoveAttribute': {
+        const el = resolveElement(inst.id);
+        if (!el) return false;
+        el.removeAttribute(inst.attr);
+        return true;
+      }
+      case 'AddClass': {
+        const el = resolveElement(inst.id);
+        if (!el) return false;
+        el.classList.add(inst.class);
+        return true;
+      }
+      case 'RemoveClass': {
+        const el = resolveElement(inst.id);
+        if (!el) return false;
+        el.classList.remove(inst.class);
+        return true;
+      }
+      case 'ToggleClass': {
+        const el = resolveElement(inst.id);
+        if (!el) return false;
+        el.classList.toggle(inst.class);
+        return true;
+      }
+      case 'SetStyle': {
+        const el = resolveElement(inst.id);
+        if (!el) return false;
+        (el.style as any)[inst.prop] = inst.value;
         return true;
       }
       case 'TriggerEvent': {
@@ -108,7 +176,6 @@ export class IRProcessor {
         if (!ok) stillFailed.push(inst);
       }
 
-      // Give up after 3 retries (instructions accumulate across retries)
       if (
         stillFailed.length > 0 &&
         IRProcessor.pendingInstructions.length < 30

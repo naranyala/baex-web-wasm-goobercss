@@ -1,5 +1,7 @@
 mod ir;
 mod actions;
+pub mod utils;
+mod state;
 
 use wasm_bindgen::prelude::*;
 use tracing::{info, error, instrument};
@@ -105,7 +107,7 @@ pub fn process_action(action_id: &str) -> JsValue {
             error!("Action processing failed: {}", e);
             let error_bundle = IRBundle {
                 version: "1.0.0".into(),
-                hlir: None,
+                effects: vec![],
                 llir: vec![LLIR::Anomaly { 
                     code: "ACTION_FAILED".into(), 
                     details: e.to_string() 
@@ -197,4 +199,31 @@ mod tests {
         assert_eq!(bundle.version, "1.0.0");
         assert!(bundle.hlir.is_some());
     }
+}
+
+#[wasm_bindgen]
+pub fn get_app_state() -> JsValue {
+    let state = state::get_state();
+    serde_wasm_bindgen::to_value(&state).unwrap()
+}
+
+#[wasm_bindgen]
+pub fn update_app_state(patch_json: &str) -> JsValue {
+    let patch: serde_json::Value = serde_json::from_str(patch_json).unwrap();
+    state::update_state(|s| {
+        if let Some(obj) = patch.as_object() {
+            for (k, v) in obj {
+                match k.as_str() {
+                    "counter" => {
+                        if let Some(val) = v.as_i64() { s.counter = val as i32; }
+                    },
+                    "current_route" => {
+                        if let Some(val) = v.as_str() { s.current_route = val.to_string(); }
+                    },
+                    _ => {}
+                }
+            }
+        }
+    });
+    get_app_state()
 }

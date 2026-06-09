@@ -1,6 +1,6 @@
 // examples/counter/main.ts
-import { BAEX } from '../../src/core/baex';
-import { ReactiveStateProxy } from '../../src/state/proxy';
+import { EXBA } from '../../src/framework/core/exba';
+import { ReactiveStateProxy } from '../../src/framework/state/proxy';
 
 const state = new ReactiveStateProxy(
   { count: 0 },

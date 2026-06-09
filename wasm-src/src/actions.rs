@@ -24,10 +24,9 @@ pub fn get_ir_bundle(action_id: &str) -> Result<IRBundle, IRError> {
     match action_id {
         "hello" => Ok(IRBundle {
             version: "1.0.0".into(),
-            hlir: Some(HLIR::UIUpdate { 
-                target_screen: "Greeting".into(), 
-                state: "Active".into() 
-            }),
+            effects: vec![HLIR::UpdateState { 
+                patch: r#"{"greeting": "Active"}"#.into() 
+            }],
             llir: vec![
                 LLIR::Log { message: "Processing hello action".into() },
                 LLIR::UpdateText { id: "greeting-box".into(), text: format!("Hello, User!") },
@@ -36,7 +35,7 @@ pub fn get_ir_bundle(action_id: &str) -> Result<IRBundle, IRError> {
         }),
         "error_test" => Ok(IRBundle {
             version: "1.0.0".into(),
-            hlir: None,
+            effects: vec![],
             llir: vec![
                 LLIR::Anomaly { 
                     code: "ERR_001".into(), 

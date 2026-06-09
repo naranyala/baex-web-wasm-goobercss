@@ -1,30 +1,33 @@
-import { css } from 'goober';
+import { ease, t } from '../../styles';
 
-const host = css`
-  & {
+const styles = `
+  :host {
+    display: block;
+  }
+  .host {
     display: flex;
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
     height: 2rem;
-    background: #09090b;
-    border-top: 1px solid rgba(39, 39, 42, 0.5);
+    background: ${t.zinc950};
+    border-top: 1px solid ${t.zinc800a};
     align-items: center;
     padding: 0 1rem;
     font-size: 0.6875rem;
     font-family: inherit;
-    color: #71717a;
+    color: ${t.zinc500};
     z-index: 100;
     gap: 1.5rem;
+    box-sizing: border-box;
   }
-`;
-
-const stat = css`
-  cursor: pointer;
-  transition: color 0.15s ease;
-  &:hover {
-    color: #d4d4d8;
+  .stat {
+    cursor: pointer;
+    transition: color ${ease};
+  }
+  .stat:hover {
+    color: ${t.zinc200};
   }
 `;
 
@@ -48,9 +51,10 @@ export class StatusBar extends HTMLElement {
 
     if (!this.shadowRoot) return;
     this.shadowRoot.innerHTML = `
-      <div class="${host}">
-        <div class="${stat}" id="status-click">Primitives: <span>${primitives}</span></div>
-        <div class="${stat}" id="status-click">WASM Functions: <span>${wasmFuncs}</span></div>
+      <style>${styles}</style>
+      <div class="host">
+        <div class="stat" id="status-click">Primitives: <span>${primitives}</span></div>
+        <div class="stat" id="status-click">WASM Functions: <span>${wasmFuncs}</span></div>
       </div>
     `;
 

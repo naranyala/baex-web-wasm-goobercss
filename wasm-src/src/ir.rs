@@ -2,27 +2,43 @@ use serde::{Serialize, Deserialize};
 use ts_rs::TS;
 
 /// High-Level Intermediate Representation (HLIR).
-/// Represents conceptual UI operations that the framework should execute.
-#[derive(Serialize, Deserialize, Debug, TS)]
+/// Represents conceptual application-level transitions.
+#[derive(Serialize, Deserialize, Debug, TS, Clone)]
 #[ts(export)]
+#[serde(tag = "type", content = "payload")]
 pub enum HLIR {
-    /// Updates a specific screen's state.
-    UIUpdate { target_screen: String, state: String },
-    /// Displays a system-level notification.
-    SystemNotification { level: String, msg: String },
-    /// Requests the application to navigate to an external URL.
-    ExternalLink { url: String, target: String },
+    /// Atomic update to the global state store.
+    UpdateState { patch: String },
+    /// Change the active application route.
+    Navigate { path: String },
+    /// Trigger a system-level notification.
+    Notify { level: String, msg: String },
+    /// Invoke a registered JS callback.
+    InvokeJS { func: String, args: String },
+    /// Synchronize specific data with the WASM core.
+    SyncData { key: String, value: String },
 }
 
 /// Low-Level Intermediate Representation (LLIR).
 /// Represents atomic DOM mutations or system calls.
-#[derive(Serialize, Deserialize, Debug, TS)]
+#[derive(Serialize, Deserialize, Debug, TS, Clone)]
 #[ts(export)]
+#[serde(tag = "type", content = "payload")]
 pub enum LLIR {
     /// Updates the text content of a DOM element.
     UpdateText { id: String, text: String },
     /// Sets a specific attribute on a DOM element.
     SetAttribute { id: String, attr: String, value: String },
+    /// Removes a specific attribute from a DOM element.
+    RemoveAttribute { id: String, attr: String },
+    /// Adds a CSS class to a DOM element.
+    AddClass { id: String, class: String },
+    /// Removes a CSS class from a DOM element.
+    RemoveClass { id: String, class: String },
+    /// Toggles a CSS class on a DOM element.
+    ToggleClass { id: String, class: String },
+    /// Sets a CSS style property.
+    SetStyle { id: String, prop: String, value: String },
     /// Triggers a specific JS event on a DOM element.
     TriggerEvent { id: String, event: String },
     /// Logs a message to the browser console.
@@ -37,9 +53,9 @@ pub enum LLIR {
 pub struct IRBundle {
     /// The version of the IR schema used.
     pub version: String,
-    /// Optional high-level conceptual update.
-    pub hlir: Option<HLIR>,
-    /// A sequence of low-level atomic instructions.
+    /// High-level application transitions.
+    pub effects: Vec<HLIR>,
+    /// Low-level atomic DOM mutations.
     pub llir: Vec<LLIR>,
 }
 
@@ -48,21 +64,13 @@ pub struct IRBundle {
 #[ts(export)]
 #[serde(tag = "type", content = "payload")]
 pub enum IRCommand {
-    /// Adds two integers.
     Add { a: i32, b: i32 },
-    /// Calculates Nth Fibonacci number.
     Fibonacci { n: i32 },
-    /// Calculates factorial of N.
     Factorial { n: i32 },
-    /// Reverses a given string.
     ReverseString { text: String },
-    /// Checks if a string is a palindrome.
     PalindromeCheck { text: String },
-    /// Generates a greeting for a user.
     Greet { name: String },
-    /// Manually reports an anomaly from the frontend.
     ReportAnomaly { message: String },
-    /// Queries the current IR rules schema.
     RulesQuery,
 }
 
@@ -71,13 +79,9 @@ pub enum IRCommand {
 #[ts(export)]
 #[serde(tag = "type", content = "payload")]
 pub enum IRResult {
-    /// A numerical result.
     Number(i32),
-    /// An operation that returns nothing.
     Void,
-    /// An error result with a message.
     Error { message: String },
-    /// A schema or set of rules.
     Rules { schema: String },
 }
 

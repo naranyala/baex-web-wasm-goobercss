@@ -1,5 +1,5 @@
 import { css } from 'goober';
-import { ExbaComponent } from '../../core/component';
+import { ExbaComponent } from '../../framework/core/component';
 
 const greeting = css`
   font-family: system-ui, sans-serif;

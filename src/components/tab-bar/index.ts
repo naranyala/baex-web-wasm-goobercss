@@ -1,12 +1,15 @@
-import { css } from 'goober';
+import { ease, t } from '../../styles';
 
-const host = css`
-  & {
+const styles = `
+  :host {
+    display: block;
+  }
+  .host {
     display: flex;
     gap: 0.25rem;
     padding: 0 0.5rem;
-    background: #09090b;
-    border-bottom: 1px solid rgba(39, 39, 42, 0.5);
+    background: ${t.zinc950};
+    border-bottom: 1px solid ${t.zinc800a};
     overflow-x: auto;
     position: fixed;
     top: 0;
@@ -15,30 +18,51 @@ const host = css`
     height: 3rem;
     z-index: 50;
     box-sizing: border-box;
-    align-items: stretch;
+    align-items: center;
   }
-`;
-
-const tab = css`
-  display: flex;
-  align-items: center;
-  padding: 0 0.75rem;
-  font-size: 0.8125rem;
-  font-family: inherit;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-  color: #a1a1aa;
-  background: transparent;
-  white-space: nowrap;
-  user-select: none;
-  &:hover:not(.active) {
-    background: rgba(39, 39, 42, 0.5);
-    color: #d4d4d8;
+  .tab {
+    display: flex;
+    align-items: center;
+    padding: 0 0.75rem;
+    font-size: 0.8125rem;
+    font-family: inherit;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background ${ease}, color ${ease};
+    color: ${t.zinc400};
+    background: transparent;
+    white-space: nowrap;
+    user-select: none;
+    height: 2rem;
+    margin: 0.5rem 0;
   }
-  &.active {
-    background: rgba(79, 70, 229, 0.2);
-    color: #a5b4fc;
+  .tab:hover:not(.active) {
+    background: ${t.zinc800a};
+    color: ${t.zinc200};
+  }
+  .tab.active {
+    background: ${t.indigo600a};
+    color: ${t.indigo300};
+  }
+  .home-button {
+    display: flex;
+    align-items: center;
+    padding: 0 0.75rem;
+    font-size: 0.8125rem;
+    font-family: inherit;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background ${ease};
+    color: ${t.white};
+    background: ${t.indigo600};
+    margin-right: 0.5rem;
+    white-space: nowrap;
+    user-select: none;
+    height: 2rem;
+    margin: 0.5rem 0;
+  }
+  .home-button:hover {
+    background: ${t.indigo500};
   }
 `;
 
@@ -58,7 +82,11 @@ export class TabBar extends HTMLElement {
 
   attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
     if (name === 'tabs') {
-      this.tabs = JSON.parse(newValue);
+      try {
+        this.tabs = JSON.parse(newValue);
+      } catch (e) {
+        console.error('Invalid tabs attribute', e);
+      }
       this.render();
     }
   }
@@ -66,11 +94,13 @@ export class TabBar extends HTMLElement {
   render() {
     if (!this.shadowRoot) return;
     this.shadowRoot.innerHTML = `
-      <div class="${host}">
+      <style>${styles}</style>
+      <div class="host">
+        <div class="home-button" data-id="home">🏠 Home</div>
         ${this.tabs
           .map(
             (t) => `
-          <div class="${tab} ${t.id === this.activeTabId ? 'active' : ''}" data-id="${t.id}">
+          <div class="tab ${t.id === this.activeTabId ? 'active' : ''}" data-id="${t.id}">
             ${t.label}
           </div>
         `,
@@ -83,13 +113,15 @@ export class TabBar extends HTMLElement {
         this.dispatchEvent(
           new CustomEvent('tab-selected', {
             detail: (el as HTMLElement).dataset.id,
+            bubbles: true,
+            composed: true,
           }),
         );
       });
     });
   }
 
-  setActive(id: string) {
+  setActive(id: string | null) {
     this.activeTabId = id;
     this.render();
   }

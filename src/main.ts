@@ -1,29 +1,28 @@
 import './style.css';
 import './components/tab-bar/index';
-import { MENU_ITEMS } from './app/constants';
+import './components/status-bar/index';
+import './components/examples/settings';
+import './components/examples/profile';
+import './components/examples/analytics';
+import './components/examples/terminal';
+import './components/examples/browser-api/audio-demo';
+import './components/examples/browser-api/canvas-demo';
+import './components/examples/browser-api/storage-demo';
+import './components/examples/browser-api/geo-demo';
+import './components/home/index';
+import { MENU_CATEGORIES, MENU_ITEMS } from './app/constants';
 import { initApp, renderTabBar } from './app/view-grid';
 import { getExposedFunctions, setupBridge } from './bridge/manager';
 import { ExbaGreeting } from './components/exba-greeting/index';
 import { WasmModal } from './components/modal/index';
 import { StatusBar } from './components/status-bar/index';
-import { EXBA } from './core/exba';
-import { ReactiveStateProxy } from './state/proxy';
+import { EXBA } from './framework/core/exba';
+import { Router } from './framework/core/router';
+import { ReactiveStateProxy } from './framework/state/proxy';
 
 EXBA.register('exba-greeting', ExbaGreeting);
 EXBA.register('status-bar', StatusBar);
 EXBA.register('wasm-modal', WasmModal);
-
-const appState = new ReactiveStateProxy(
-  { counter: 0 },
-  {
-    onPropertyUpdate: (prop, value) => {
-      if (prop === 'counter') {
-        const el = document.getElementById('state-counter');
-        if (el) el.innerText = `Counter: ${value}`;
-      }
-    },
-  },
-);
 
 async function waitForApp() {
   return new Promise<HTMLElement>((resolve, reject) => {
@@ -152,58 +151,113 @@ async function bootstrap() {
     );
     throw e;
   }
+
+  const appState = new ReactiveStateProxy(
+    { counter: 0 },
+    {
+      onPropertyUpdate: (prop, value) => {
+        if (prop === 'counter') {
+          const el = document.getElementById('state-counter');
+          if (el) el.innerText = `Counter: ${value}`;
+        }
+      },
+    },
+  );
+
+  return appState;
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    await bootstrap();
+    const appState = await bootstrap();
+
+    const router = new Router('view-container');
+
+    // Register Home Route
+    router.register({
+      path: '/',
+      component: 'exba-home',
+    });
+
+    // Register Component Example Routes
+    MENU_CATEGORIES.forEach((cat) => {
+      cat.items.forEach((item) => {
+        const _componentTag = `exba-${item.id.replace('wasm-', '').replace('hello-action', 'greeting').replace('error-test', 'anomaly')}`;
+      });
+    });
+
+    // Manually register a few to be sure
+    router.register({ path: '/settings', component: 'exba-settings' });
+    router.register({ path: '/profile', component: 'exba-profile' });
+    router.register({ path: '/analytics', component: 'exba-analytics' });
+    router.register({ path: '/terminal', component: 'exba-terminal' });
+    router.register({ path: '/api-audio', component: 'exba-audio-demo' });
+    router.register({ path: '/api-canvas', component: 'exba-canvas-demo' });
+    router.register({ path: '/api-storage', component: 'exba-storage-demo' });
+    router.register({ path: '/api-geo', component: 'exba-geo-demo' });
+
+    const tabs = new Map<string, { label: string; action: () => void }>();
+    let activeTabId: string | null = null;
+
+    const statusBar = document.getElementById('app-status-bar');
+    if (statusBar) {
+      statusBar.addEventListener('show-modal', () => {
+        const modal = document.createElement('wasm-modal');
+        modal.setAttribute('functions', JSON.stringify(getExposedFunctions()));
+        document.body.appendChild(modal);
+      });
+    }
+
+    const tabBar = document.getElementById('main-tab-bar') as HTMLElement & {
+      addEventListener: (
+        type: 'tab-selected',
+        listener: (e: CustomEvent<string>) => void,
+      ) => void;
+    };
+    if (tabBar) {
+      tabBar.addEventListener('tab-selected', (e) => {
+        const tabId = e.detail;
+        if (tabId === 'home') {
+          router.navigate('/');
+          renderTabBar(tabs, null);
+          return;
+        }
+        activeTabId = tabId;
+        const tab = tabs.get(tabId);
+        if (tab) {
+          tab.action();
+        }
+        renderTabBar(tabs, activeTabId);
+      });
+    }
+
+    (window as any).dispatchMenuAction = (id: string) => {
+      const item = MENU_ITEMS.find((i) => i.id === id);
+      if (item) {
+        tabs.set(item.id, { label: item.label, action: item.action });
+        activeTabId = item.id;
+        item.action();
+        router.navigate(`/${item.id}`);
+        renderTabBar(tabs, activeTabId);
+      }
+    };
+
+    (window as any).triggerExbaAction = async (actionId: string) => {
+      try {
+        await EXBA.callBridge('process_action', actionId);
+      } catch (e) {
+        console.error(`[EXBA] Bridge action "${actionId}" failed:`, e);
+      }
+    };
+
+    (window as any).incrementCounter = () => {
+      appState.value.counter++;
+    };
+
+    // Initial navigation
+    router.navigate('/');
   } catch (e) {
     console.error('[EXBA] Fatal initialization error:', e);
     return;
   }
-
-  const tabs = new Map<string, any>();
-  let activeTabId: string | null = null;
-
-  const statusBar = document.getElementById('app-status-bar');
-  if (statusBar) {
-    statusBar.addEventListener('show-modal', () => {
-      const modal = document.createElement('wasm-modal');
-      modal.setAttribute('functions', JSON.stringify(getExposedFunctions()));
-      document.body.appendChild(modal);
-    });
-  }
-
-  const tabBar = document.getElementById('main-tab-bar') as any;
-  if (tabBar) {
-    tabBar.addEventListener('tab-selected', (e: any) => {
-      const tabId = e.detail;
-      activeTabId = tabId;
-      const tab = tabs.get(tabId);
-      if (tab) tab.action();
-      renderTabBar(tabs, activeTabId);
-    });
-  }
-
-  (window as any).dispatchMenuAction = (id: string) => {
-    const item = MENU_ITEMS.find((i) => i.id === id);
-    if (item) {
-      tabs.set(item.id, { label: item.label, action: item.action });
-      activeTabId = item.id;
-      item.action();
-      renderTabBar(tabs, activeTabId);
-    }
-  };
-
-  (window as any).triggerExbaAction = async (actionId: string) => {
-    try {
-      await EXBA.callBridge('process_action', actionId);
-    } catch (e) {
-      console.error(`[EXBA] Bridge action "${actionId}" failed:`, e);
-    }
-  };
-
-  (window as any).incrementCounter = () => {
-    appState.value.counter++;
-  };
 });

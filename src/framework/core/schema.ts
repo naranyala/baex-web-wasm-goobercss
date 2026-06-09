@@ -16,19 +16,29 @@ export function escapeHtml(str: string): string {
 // ─── HLIR Schema ──────────────────────────────────────────────
 export const HLIRSchema = z.union([
   z.object({
+    type: z.literal('UpdateState'),
+    payload: z.object({ patch: z.string() }),
+  }),
+  z.object({
+    type: z.literal('Navigate'),
+    payload: z.object({ path: z.string() }),
+  }),
+  z.object({
+    type: z.literal('Notify'),
+    payload: z.object({ level: z.string(), msg: z.string() }),
+  }),
+  z.object({
+    type: z.literal('InvokeJS'),
+    payload: z.object({ func: z.string(), args: z.any() }),
+  }),
+  z.object({
+    type: z.literal('SyncData'),
+    payload: z.object({ key: z.string() }),
+  }),
+  z.object({
     type: z.literal('UIUpdate'),
     target_screen: z.string(),
     state: z.string(),
-  }),
-  z.object({
-    type: z.literal('SystemNotification'),
-    level: z.string(),
-    msg: z.string(),
-  }),
-  z.object({
-    type: z.literal('ExternalLink'),
-    url: z.string(),
-    target: z.string(),
   }),
 ]);
 
@@ -39,6 +49,32 @@ export const LLIRSchema = z.union([
     type: z.literal('SetAttribute'),
     id: z.string(),
     attr: z.string(),
+    value: z.string(),
+  }),
+  z.object({
+    type: z.literal('RemoveAttribute'),
+    id: z.string(),
+    attr: z.string(),
+  }),
+  z.object({
+    type: z.literal('AddClass'),
+    id: z.string(),
+    class: z.string(),
+  }),
+  z.object({
+    type: z.literal('RemoveClass'),
+    id: z.string(),
+    class: z.string(),
+  }),
+  z.object({
+    type: z.literal('ToggleClass'),
+    id: z.string(),
+    class: z.string(),
+  }),
+  z.object({
+    type: z.literal('SetStyle'),
+    id: z.string(),
+    prop: z.string(),
     value: z.string(),
   }),
   z.object({
@@ -57,7 +93,7 @@ export const LLIRSchema = z.union([
 // ─── IR Bundle Schema ─────────────────────────────────────────
 export const IRBundleSchema = z.object({
   version: z.string(),
-  hlir: HLIRSchema.nullable(),
+  hlir: z.array(HLIRSchema).nullable(),
   llir: z.array(LLIRSchema),
 });
 

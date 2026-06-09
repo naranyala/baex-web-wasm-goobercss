@@ -1,7 +1,7 @@
 import { css } from 'goober';
 
 // ─── Design Tokens ─────────────────────────────────────────────
-const t = {
+export const t = {
   zinc50: '#fafafa',
   zinc100: '#f4f4f5',
   zinc200: '#e4e4e7',
@@ -26,97 +26,132 @@ const t = {
   white: '#fff',
 };
 
-const ease = '0.15s ease';
+export const theme = {
+  background: 'var(--exba-background)',
+  foreground: 'var(--exba-foreground)',
+  primary: 'var(--exba-primary)',
+  secondary: 'var(--exba-secondary)',
+  accent: 'var(--exba-accent)',
+  border: 'var(--exba-border)',
+  muted: 'var(--exba-muted)',
+};
+
+export const ease = '0.15s ease';
 
 // ─── Base ──────────────────────────────────────────────────────
-export const appBody = css`
+const appBody = css`
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
   padding-top: 3rem;
-  background: ${t.zinc900};
-  color: ${t.zinc50};
+  background: ${theme.background};
+  color: ${theme.foreground};
   font-family: Inter, system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color-scheme: dark;
 `;
 
-export const appContainer = css`
+const appContainer = css`
   width: 100%;
   margin: 0;
   padding: 0;
 `;
 
 // ─── Layout ────────────────────────────────────────────────────
-export const layoutShell = css`
+const layoutShell = css`
   display: flex;
+  flex-direction: column;
   height: calc(100vh - 3rem);
-  background: ${t.zinc900};
-  color: ${t.zinc100};
+  background: ${theme.background};
+  color: ${theme.foreground};
+  padding-top: 3rem;
 `;
 
-export const sidebar = css`
-  width: 16rem;
-  flex-shrink: 0;
-  border-right: 1px solid ${t.zinc800a};
+const menuContainer = css`
   display: flex;
   flex-direction: column;
-  background: ${t.zinc800a};
-  padding-bottom: 2rem;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  box-sizing: border-box;
 `;
 
-export const sidebarHeader = css`
-  padding: 1.25rem;
-  font-size: 1.125rem;
+const categoryTitle = css`
+  width: 100%;
+  font-size: 1rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
-  border-bottom: 1px solid ${t.zinc800a};
+  color: ${theme.secondary};
+  margin: 2rem 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid ${theme.border};
+  text-align: left;
 `;
 
-export const sidebarSearch = css`
-  padding: 0.75rem;
+const sidebar = css`
+  display: none;
 `;
 
-export const menuGrid = css`
+const sidebarHeader = css`
+  display: none;
+`;
+
+const sidebarSearch = css`
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto 2rem auto;
+  display: flex;
+  justify-content: center;
+`;
+
+const menuGrid = css`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+`;
+
+const mainContent = css`
   flex: 1;
-  overflow-y: auto;
-  padding: 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
-`;
-
-export const mainContent = css`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  align-items: center;
   min-width: 0;
   padding-bottom: 2rem;
 `;
 
-export const mainScroll = css`
+const mainScroll = css`
   flex: 1;
   padding: 1.5rem;
   overflow-y: auto;
 `;
 
 // ─── Menu Items ────────────────────────────────────────────────
-export const menuItem = css`
+const menuItem = css`
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.625rem 0.75rem;
-  border-radius: 0.5rem;
+  justify-content: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
   cursor: pointer;
-  transition: background ${ease};
+  transition: all ${ease};
+  border: 1px solid ${theme.border};
+  background: ${theme.muted};
   &:hover {
-    background: ${t.zinc800a};
+    background: ${theme.secondary};
+    transform: translateY(-2px);
+    border-color: ${theme.primary};
   }
 `;
 
-export const menuItemIcon = css`
-  font-size: 1rem;
+const menuItemIcon = css`
+  font-size: 1.25rem;
   opacity: 0.7;
   transition: opacity ${ease};
   ${menuItem}:hover & {
@@ -124,66 +159,66 @@ export const menuItemIcon = css`
   }
 `;
 
-export const menuItemLabel = css`
-  font-size: 0.875rem;
-  color: ${t.zinc300};
+const menuItemLabel = css`
+  font-size: 0.8125rem;
+  color: ${theme.secondary};
   transition: color ${ease};
   ${menuItem}:hover & {
-    color: ${t.zinc100};
+    color: ${theme.foreground};
   }
 `;
 
 // ─── Search Input ──────────────────────────────────────────────
-export const searchInput = css`
+const searchInput = css`
   width: 100%;
   padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
-  border: 1px solid ${t.zinc700};
-  background: ${t.zinc900a};
-  color: ${t.zinc100};
+  border: 1px solid ${theme.border};
+  background: ${theme.background};
+  color: ${theme.foreground};
   font-size: 0.875rem;
   font-family: inherit;
   outline: none;
   transition: border-color ${ease};
   &::placeholder {
-    color: ${t.zinc500};
+    color: ${theme.secondary};
   }
   &:focus {
-    border-color: ${t.indigo500};
+    border-color: ${theme.primary};
   }
 `;
 
 // ─── Content Area ──────────────────────────────────────────────
-export const viewHeading = css`
+const viewHeading = css`
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0 0 1rem;
-  color: ${t.zinc200};
+  color: ${theme.foreground};
 `;
 
-export const executionLog = css`
+const executionLog = css`
   margin-top: 1rem;
   font-size: 0.875rem;
   font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-  color: ${t.indigo400};
+  color: ${theme.accent};
   opacity: 0.5;
   transition: opacity ${ease};
   min-height: 1.5rem;
 `;
 
-export const executionLogActive = css`
+const executionLogActive = css`
   opacity: 1;
 `;
 
 // ─── Collapsible Sections ──────────────────────────────────────
-export const sectionCard = css`
-  border: 1px solid ${t.zinc800a};
+const sectionCard = css`
+  border: 1px solid ${theme.border};
   border-radius: 1rem;
   overflow: hidden;
-  background: rgba(39, 39, 42, 0.25);
+  background: ${theme.muted};
 `;
 
-export const sectionHeader = css`
+const sectionHeader = css`
   padding: 1rem;
   display: flex;
   align-items: center;
@@ -191,11 +226,11 @@ export const sectionHeader = css`
   cursor: pointer;
   transition: background ${ease};
   &:hover {
-    background: rgba(39, 39, 42, 0.3);
+    background: ${theme.secondary};
   }
 `;
 
-export const sectionTitle = css`
+const sectionTitle = css`
   font-size: 1.125rem;
   font-weight: 600;
   display: flex;
@@ -204,25 +239,25 @@ export const sectionTitle = css`
   margin: 0;
 `;
 
-export const sectionArrow = css`
+const sectionArrow = css`
   transition: transform 0.2s ease;
-  color: ${t.zinc500};
+  color: ${theme.secondary};
   font-size: 0.75rem;
 `;
 
-export const sectionBody = css`
+const sectionBody = css`
   padding: 1.5rem;
-  border-top: 1px solid ${t.zinc800a};
+  border-top: 1px solid ${theme.border};
 `;
 
-export const sectionBodyInner = css`
+const sectionBodyInner = css`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 `;
 
 // ─── Buttons ───────────────────────────────────────────────────
-export const btn = css`
+const btn = css`
   padding: 0.5rem 1rem;
   font-size: 0.8125rem;
   font-family: inherit;
@@ -233,70 +268,70 @@ export const btn = css`
   transition: background ${ease};
 `;
 
-export const btnIndigo = css`
-  background: ${t.indigo600};
-  &:hover { background: ${t.indigo500}; }
+const btnIndigo = css`
+  background: ${theme.primary};
+  &:hover { background: ${theme.primary}; }
 `;
 
-export const btnEmerald = css`
+const btnEmerald = css`
   background: ${t.emerald600};
   &:hover { background: ${t.emerald400}; }
 `;
 
-export const btnRed = css`
+const btnRed = css`
   background: ${t.red600};
   &:hover { background: #ef4444; }
 `;
 
-export const btnRow = css`
+const btnRow = css`
   display: flex;
   gap: 0.5rem;
 `;
 
 // ─── Greeting Panel ────────────────────────────────────────────
-export const greetingPanel = css`
+const greetingPanel = css`
   padding: 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  background: ${t.zinc800a};
-  border-bottom: 1px solid ${t.zinc800a};
+  background: ${theme.muted};
+  border-bottom: 1px solid ${theme.border};
 `;
 
-export const greetingBox = css`
+const greetingBox = css`
   font-size: 0.875rem;
   font-family: 'SF Mono', 'Fira Code', monospace;
-  color: ${t.zinc400};
+  color: ${theme.secondary};
 `;
 
-export const stateCounter = css`
+const stateCounter = css`
   font-size: 0.75rem;
-  color: ${t.indigo300};
+  color: ${theme.accent};
 `;
 
 // ─── Search (centered variant for view.ts) ─────────────────────
-export const searchInputLg = css`
+const searchInputLg = css`
   width: 100%;
   max-width: 28rem;
   padding: 0.75rem 1rem;
   font-size: 1rem;
   border-radius: 0.75rem;
-  border: 2px solid ${t.zinc700};
-  background: ${t.zinc800};
-  color: ${t.zinc100};
+  border: 2px solid ${theme.border};
+  background: ${theme.background};
+  color: ${theme.foreground};
   font-family: inherit;
   outline: none;
   transition: border-color ${ease};
   &::placeholder {
-    color: ${t.zinc500};
+    color: ${theme.secondary};
   }
   &:focus {
-    border-color: ${t.indigo500};
+    border-color: ${theme.primary};
   }
 `;
 
-export const searchCenter = css`
+const searchCenter = css`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -305,54 +340,98 @@ export const searchCenter = css`
 `;
 
 // ─── Code Examples ─────────────────────────────────────────────
-export const codeCard = css`
+const codeCard = css`
   margin-bottom: 1rem;
-  background: rgba(39, 39, 42, 0.25);
+  background: ${theme.muted};
   border-radius: 0.75rem;
-  border: 1px solid ${t.zinc800a};
+  border: 1px solid ${theme.border};
   overflow: hidden;
 `;
 
-export const codeHeader = css`
+const codeHeader = css`
   padding: 0.5rem 1rem;
-  background: ${t.zinc800a};
+  background: ${theme.border};
   font-size: 0.75rem;
   font-family: 'SF Mono', 'Fira Code', monospace;
-  color: ${t.zinc400};
+  color: ${theme.secondary};
   display: flex;
   justify-content: space-between;
   align-items: center;
 `;
 
-export const codeBody = css`
+const codeBody = css`
   padding: 1rem;
   overflow-x: auto;
   font-size: 0.875rem;
   font-family: 'SF Mono', 'Fira Code', monospace;
-  color: ${t.indigo300};
-  background: rgba(9, 9, 11, 0.5);
+  color: ${theme.accent};
+  background: ${theme.background};
 `;
 
 // ─── Utilities ─────────────────────────────────────────────────
-export const hidden = css`
+const hidden = css`
   display: none;
 `;
 
-export const rotate180 = css`
+const rotate180 = css`
   transform: rotate(180deg);
 `;
 
 // ─── Result Output ─────────────────────────────────────────────
-export const resultText = css`
+const resultText = css`
   margin-bottom: 0.5rem;
 `;
 
-export const resultCode = css`
+const resultCode = css`
   padding: 0.5rem;
-  background: ${t.zinc950};
+  background: ${theme.background};
   border-radius: 0.25rem;
   font-size: 0.75rem;
-  color: ${t.indigo300};
+  color: ${theme.accent};
   font-family: 'SF Mono', 'Fira Code', monospace;
   overflow-x: auto;
 `;
+
+export const styles = {
+  appBody,
+  appContainer,
+  layoutShell,
+  menuContainer,
+  sidebar,
+  sidebarHeader,
+  sidebarSearch,
+  menuGrid,
+  mainContent,
+  mainScroll,
+  menuItem,
+  menuItemIcon,
+  menuItemLabel,
+  searchInput,
+  viewHeading,
+  executionLog,
+  executionLogActive,
+  sectionCard,
+  sectionHeader,
+  sectionTitle,
+  sectionArrow,
+  sectionBody,
+  sectionBodyInner,
+  btn,
+  btnIndigo,
+  btnEmerald,
+  btnRed,
+  btnRow,
+  greetingPanel,
+  greetingBox,
+  stateCounter,
+  searchInputLg,
+  searchCenter,
+  codeCard,
+  codeHeader,
+  codeBody,
+  hidden,
+  rotate180,
+  resultText,
+  resultCode,
+  categoryTitle,
+};

@@ -1,6 +1,6 @@
 import type { InitOutput } from '../../public/wasm/wasm_logic';
 import init from '../../public/wasm/wasm_logic';
-import { EXBA } from '../core/exba';
+import { EXBA } from '../framework/core/exba';
 
 const WASM_METHODS = [
   { name: 'greet', description: 'Displays an alert greeting.' },

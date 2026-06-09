@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { EXBA } from '../../src/core/exba';
+import { EXBA } from '../../src/framework/core/exba';
 
 describe('WASM Bridge Example', () => {
   beforeEach(() => {

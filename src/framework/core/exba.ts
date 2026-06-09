@@ -1,13 +1,15 @@
-import type { ExbaBridge } from '../bridge/types';
+import type { BridgeAPI, ExbaBridge } from '../../bridge/types';
+import { createTypedBridge } from '../../bridge/types';
 import { IRProcessor } from './processor';
 import type { IRBundle } from './schema';
 
 export class EXBA {
   static bridge: ExbaBridge | null = null;
+  static api: BridgeAPI | null = null;
   static DEBUG = true;
   static wasmModule: any = null;
   static subscriptions = new Map<string, Set<(val: any) => void>>();
-  private static eventListeners = new Map<string, Set<(data: any) => void>>();
+  static eventListeners = new Map<string, Set<(data: any) => void>>();
 
   static log(phase: string, message: any) {
     if (EXBA.DEBUG) {
@@ -64,12 +66,29 @@ export class EXBA {
 
   static setBridge(bridge: ExbaBridge) {
     EXBA.bridge = bridge;
+    EXBA.api = createTypedBridge(bridge);
   }
 
-  static register(tagName: string, componentClass: new () => HTMLElement) {
-    if (!customElements.get(tagName)) {
-      customElements.define(tagName, componentClass);
+  static register(tagName: string, componentClass: any) {
+    if (customElements.get(tagName)) return;
+
+    // Blueprint Validation
+    const errors: string[] = [];
+    if (!componentClass.props) errors.push('Missing static "props" definition');
+    if (!componentClass.styles)
+      errors.push('Missing static "styles" definition');
+    if (!componentClass.prototype.render)
+      errors.push('Missing "render()" method implementation');
+
+    if (errors.length > 0) {
+      console.error(
+        `%c[EXBA Component Error] <${tagName}> violates Blueprint Rules:\n- ${errors.join('\n- ')}`,
+        'color: #ef4444; font-weight: bold; background: rgba(239, 68, 68, 0.1); padding: 4px; border-radius: 4px;',
+      );
+      // We still register it to avoid crashing the whole app, but the developer is warned.
     }
+
+    customElements.define(tagName, componentClass);
   }
 
   static async callBridge<T>(method: string, ...args: any[]): Promise<T> {

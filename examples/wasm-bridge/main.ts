@@ -1,5 +1,5 @@
 // examples/wasm-bridge/main.ts
-import { BAEX } from '../../src/core/baex';
+import { EXBA } from '../../src/framework/core/exba';
 
 const btn = document.getElementById('call-btn');
 const result = document.getElementById('result');
