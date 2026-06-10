@@ -14,6 +14,14 @@ const WASM_METHODS = [
   },
   { name: 'add', description: 'Adds two integers.' },
   { name: 'fibonacci', description: 'Calculates the Nth Fibonacci number.' },
+  {
+    name: 'wasm_get_app_state',
+    description: 'Retrieves the global app state from WASM.',
+  },
+  {
+    name: 'wasm_update_app_state',
+    description: 'Updates the global app state in WASM.',
+  },
 ] as const;
 
 export function getExposedFunctions() {
@@ -28,7 +36,7 @@ export async function setupBridge() {
     const module = await EXBA.initWasm(init);
     console.log('Wasm Engine initialized');
 
-    const wasm = module as unknown as InitOutput;
+    const wasm = module as any;
 
     EXBA.setBridge({
       call: async (method, ...args) => {
@@ -43,6 +51,7 @@ export async function setupBridge() {
             return ir;
           }
           case 'process_ir': {
+            console.log('Bridge process_ir called with:', args[0]);
             return wasm.process_ir(args[0]);
           }
           case 'add': {
@@ -50,6 +59,12 @@ export async function setupBridge() {
           }
           case 'fibonacci': {
             return wasm.fibonacci(args[0]);
+          }
+          case 'wasm_get_app_state': {
+            return wasm.wasm_get_app_state();
+          }
+          case 'wasm_update_app_state': {
+            return wasm.wasm_update_app_state(args[0]);
           }
           default:
             throw new Error(

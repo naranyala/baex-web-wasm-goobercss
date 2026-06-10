@@ -23,7 +23,7 @@ const styles = `
   .tab {
     display: flex;
     align-items: center;
-    padding: 0 0.75rem;
+    padding: 0 0.5rem 0 0.75rem;
     font-size: 0.8125rem;
     font-family: inherit;
     border-radius: 0.375rem;
@@ -35,6 +35,7 @@ const styles = `
     user-select: none;
     height: 2rem;
     margin: 0.5rem 0;
+    gap: 0.5rem;
   }
   .tab:hover:not(.active) {
     background: ${t.zinc800a};
@@ -43,6 +44,21 @@ const styles = `
   .tab.active {
     background: ${t.indigo600a};
     color: ${t.indigo300};
+  }
+  .close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    color: ${t.zinc500};
+    transition: all ${ease};
+  }
+  .close-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
   }
   .home-button {
     display: flex;
@@ -101,15 +117,41 @@ export class TabBar extends HTMLElement {
           .map(
             (t) => `
           <div class="tab ${t.id === this.activeTabId ? 'active' : ''}" data-id="${t.id}">
-            ${t.label}
+            <span>${t.label}</span>
+            <div class="close-btn" data-close="${t.id}">✕</div>
           </div>
         `,
           )
           .join('')}
       </div>
     `;
-    this.shadowRoot.querySelectorAll('[data-id]').forEach((el) => {
-      el.addEventListener('click', () => {
+
+    this.shadowRoot
+      .querySelector('.home-button')
+      ?.addEventListener('click', () => {
+        this.dispatchEvent(
+          new CustomEvent('tab-selected', {
+            detail: 'home',
+            bubbles: true,
+            composed: true,
+          }),
+        );
+      });
+
+    this.shadowRoot.querySelectorAll('.tab').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (target.classList.contains('close-btn')) {
+          e.stopPropagation();
+          this.dispatchEvent(
+            new CustomEvent('tab-closed', {
+              detail: target.dataset.close,
+              bubbles: true,
+              composed: true,
+            }),
+          );
+          return;
+        }
         this.dispatchEvent(
           new CustomEvent('tab-selected', {
             detail: (el as HTMLElement).dataset.id,

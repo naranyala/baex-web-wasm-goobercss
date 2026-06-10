@@ -414,6 +414,7 @@ dependencies = [
 name = "wasm-logic"
 version = "0.1.0"
 dependencies = [
+ "js-sys",
  "lazy_static",
  "serde",
  "serde-wasm-bindgen",

@@ -1,5 +1,5 @@
 import { Context } from './context';
-import { patch } from './dom';
+import { patch, type TemplateResult } from './dom';
 import { EXBA } from './exba';
 
 export interface ComponentState {
@@ -27,13 +27,21 @@ export abstract class ExbaComponent extends HTMLElement {
    */
   static styles: Record<string, string> = {};
 
+  /**
+   * Define if the component should use Shadow DOM.
+   * Defaults to true.
+   */
+  static useShadow = true;
+
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    if ((this.constructor as typeof ExbaComponent).useShadow) {
+      this.attachShadow({ mode: 'open' });
+    }
   }
 
   static get observedAttributes() {
-    return Object.keys((this as any).props);
+    return Object.keys(ExbaComponent.props || {});
   }
 
   attributeChangedCallback(
@@ -68,27 +76,29 @@ export abstract class ExbaComponent extends HTMLElement {
   }
 
   /**
-   * The core rendering method. Should return a string of HTML.
+   * The core rendering method. Should return a string of HTML or a TemplateResult.
    */
-  abstract render(): string;
+  abstract render(): string | TemplateResult;
 
   /**
    * Lifecycle hooks
    */
   protected onMount(): void {}
-  protected onUpdate(): void {}
+  protected onUpdate(_changedProps: string[]): void {}
   protected onUnmount(): void {}
 
   connectedCallback() {
-    this.onMount();
     this.safeUpdate();
+    this.onMount();
   }
 
   disconnectedCallback() {
     this.onUnmount();
-    this.activeSubscriptions.forEach((unsub) => {
-      unsub();
-    });
+    this.cleanup();
+  }
+
+  private cleanup() {
+    this.activeSubscriptions.forEach((unsub) => unsub());
     this.activeSubscriptions = [];
   }
 
@@ -96,9 +106,29 @@ export abstract class ExbaComponent extends HTMLElement {
    * Updates the component state and triggers a re-render.
    */
   setState(newState: Partial<ComponentState>) {
+    const changed: string[] = [];
+    for (const key in newState) {
+      if (this.state[key] !== newState[key]) {
+        changed.push(key);
+      }
+    }
+
+    if (changed.length === 0) return;
+
     this.state = { ...this.state, ...newState };
     this.safeUpdate();
-    this.onUpdate();
+    this.onUpdate(changed);
+  }
+
+  /**
+   * Registers a reactive effect that is automatically cleaned up on unmount.
+   */
+  protected createEffect(key: string, callback: (val: any) => void) {
+    const unsub = EXBA.subscribe(key, (val) => {
+      callback(val);
+    });
+    this.activeSubscriptions.push(unsub);
+    return unsub;
   }
 
   /**
@@ -129,29 +159,40 @@ export abstract class ExbaComponent extends HTMLElement {
     return slot ? slot.innerHTML : '';
   }
 
-  private safeUpdate() {
-    if (!this.shadowRoot) return;
-    try {
-      const html = this.render();
+  private async safeUpdate() {
+    const root = this.shadowRoot || this;
+    if (!root) return;
 
-      // Generate style block from styles object
+    try {
+      const htmlOutput = this.render();
+
+      // Generate style block from styles object or string
       const stylesObj = (this.constructor as typeof ExbaComponent).styles;
       let styleContent = '';
-      if (stylesObj) {
+      if (typeof stylesObj === 'string') {
+        styleContent = stylesObj;
+      } else if (stylesObj) {
         styleContent = Object.entries(stylesObj)
           .map(([cls, rules]) => `.${cls} { ${rules} }`)
           .join('\n');
       }
       const styleTag = styleContent ? `<style>${styleContent}</style>` : '';
 
-      const fullHTML = `${styleTag}${html}`;
-      patch(this.shadowRoot, fullHTML);
+      if (typeof htmlOutput === 'string') {
+        const fullHTML = `${styleTag}${htmlOutput}`;
+        await patch(root, fullHTML);
+      } else {
+        // If it's a TemplateResult, we prepend the style tag to the first string segment
+        const newStrings = [...htmlOutput.strings] as any;
+        newStrings[0] = styleTag + newStrings[0];
+        await patch(root, { ...htmlOutput, strings: newStrings });
+      }
     } catch (e) {
       console.error(
         `[EXBA] Render error in <${this.tagName.toLowerCase()}>:`,
         e,
       );
-      this.shadowRoot.innerHTML = `
+      root.innerHTML = `
         <div style="padding: 0.5rem; color: #ef4444; font-size: 0.8125rem; font-family: monospace;">
           Render error: ${e instanceof Error ? e.message : String(e)}
         </div>
@@ -168,5 +209,19 @@ export abstract class ExbaComponent extends HTMLElement {
 
   protected async callWasm<T>(method: string, ...args: any[]): Promise<T> {
     return EXBA.callBridge<T>(method, ...args);
+  }
+
+  // ─── Functional Hooks ──────────────────────────────────────
+
+  /**
+   * Creates a reactive signal that is scoped to this component's lifecycle.
+   */
+  protected useSignal<T>(initialValue: T, key?: string) {
+    const signal = EXBA.createSignal(initialValue, key);
+    this.createEffect(signal.key, (val) => {
+      // Force update when signal changes if it's not already handled by local state
+      this.safeUpdate();
+    });
+    return signal;
   }
 }

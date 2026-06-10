@@ -2,6 +2,9 @@ mod ir;
 mod actions;
 pub mod utils;
 mod state;
+pub mod sys_info;
+pub mod kanban;
+pub mod dom_engine;
 
 use wasm_bindgen::prelude::*;
 use tracing::{info, error, instrument};
@@ -18,7 +21,7 @@ extern "C" {
 
 #[wasm_bindgen(start)]
 pub fn start() {
-    /// Initializes the WASM runtime and sets up the tracing subscriber for browser logging.
+    // Initializes the WASM runtime and sets up the tracing subscriber for browser logging.
     let config = WASMLayerConfigBuilder::new().build();
     tracing::subscriber::set_global_default(
         Registry::default().with(WASMLayer::new(config))
@@ -64,6 +67,31 @@ fn process_ir_logic(command: IRCommand) -> IRResult {
                 schema: "JSON-based IR, tag-content payload".to_string() 
             }
         },
+        IRCommand::SystemFetch => {
+            info!("System information requested");
+            IRResult::SystemInfo(sys_info::gather_sys_info())
+        },
+        IRCommand::KanbanFetch => {
+            info!("Kanban tasks requested");
+            IRResult::KanbanData(kanban::get_tasks())
+        },
+        IRCommand::MoveTask { id } => {
+            info!("Moving task: {}", id);
+            IRResult::KanbanData(kanban::move_task(&id))
+        },
+        IRCommand::AddTask { title, priority, tags } => {
+            info!("Adding task: {}", title);
+            IRResult::KanbanData(kanban::add_task(title, priority, tags))
+        },
+        IRCommand::DeleteTask { id } => {
+            info!("Deleting task: {}", id);
+            IRResult::KanbanData(kanban::delete_task(&id))
+        },
+        IRCommand::PerformDiff { .. } => {
+            info!("DOM diffing requested (Tier 1)");
+            // Placeholder for Rust diffing implementation
+            IRResult::DiffResult(vec![])
+        }
     }
 }
 
@@ -197,18 +225,18 @@ mod tests {
     fn test_get_ir_bundle_hello() {
         let bundle = get_ir_bundle("hello").unwrap();
         assert_eq!(bundle.version, "1.0.0");
-        assert!(bundle.hlir.is_some());
+        assert!(!bundle.effects.is_empty());
     }
 }
 
 #[wasm_bindgen]
-pub fn get_app_state() -> JsValue {
+pub fn wasm_get_app_state() -> JsValue {
     let state = state::get_state();
     serde_wasm_bindgen::to_value(&state).unwrap()
 }
 
 #[wasm_bindgen]
-pub fn update_app_state(patch_json: &str) -> JsValue {
+pub fn wasm_update_app_state(patch_json: &str) -> JsValue {
     let patch: serde_json::Value = serde_json::from_str(patch_json).unwrap();
     state::update_state(|s| {
         if let Some(obj) = patch.as_object() {
@@ -225,5 +253,5 @@ pub fn update_app_state(patch_json: &str) -> JsValue {
             }
         }
     });
-    get_app_state()
+    wasm_get_app_state()
 }

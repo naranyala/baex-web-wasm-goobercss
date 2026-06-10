@@ -72,6 +72,12 @@ pub enum IRCommand {
     Greet { name: String },
     ReportAnomaly { message: String },
     RulesQuery,
+    SystemFetch,
+    KanbanFetch,
+    MoveTask { id: String },
+    AddTask { title: String, priority: String, tags: Vec<String> },
+    DeleteTask { id: String },
+    PerformDiff { old_html: String, new_html: String },
 }
 
 /// Results returned from the Rust core to the TS Bridge.
@@ -83,11 +89,15 @@ pub enum IRResult {
     Void,
     Error { message: String },
     Rules { schema: String },
+    SystemInfo(crate::sys_info::SystemInfo),
+    KanbanData(Vec<crate::kanban::KanbanTask>),
+    DiffResult(Vec<crate::dom_engine::DomInstruction>),
 }
 
 #[cfg(test)]
 mod ts_tests {
     use super::*;
+    use ts_rs::Config;
     #[test]
     fn generate_types() {
         let config = Config::default();

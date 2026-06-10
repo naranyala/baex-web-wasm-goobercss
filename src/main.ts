@@ -5,6 +5,11 @@ import './components/examples/settings';
 import './components/examples/profile';
 import './components/examples/analytics';
 import './components/examples/terminal';
+import './components/examples/neofetch';
+import './components/examples/kanban';
+import './components/examples/activity-feed';
+import './components/examples/accordion';
+import './components/examples/drawer';
 import './components/examples/browser-api/audio-demo';
 import './components/examples/browser-api/canvas-demo';
 import './components/examples/browser-api/storage-demo';
@@ -155,11 +160,8 @@ async function bootstrap() {
   const appState = new ReactiveStateProxy(
     { counter: 0 },
     {
-      onPropertyUpdate: (prop, value) => {
-        if (prop === 'counter') {
-          const el = document.getElementById('state-counter');
-          if (el) el.innerText = `Counter: ${value}`;
-        }
+      onPropertyUpdate: (_prop, _value) => {
+        // StatusBar now handles this via createEffect('counter')
       },
     },
   );
@@ -191,6 +193,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     router.register({ path: '/profile', component: 'exba-profile' });
     router.register({ path: '/analytics', component: 'exba-analytics' });
     router.register({ path: '/terminal', component: 'exba-terminal' });
+    router.register({ path: '/neofetch', component: 'exba-neofetch' });
+    router.register({ path: '/kanban', component: 'exba-kanban' });
+    router.register({ path: '/activity', component: 'exba-activity-feed' });
+    router.register({ path: '/accordion', component: 'exba-accordion' });
+    router.register({ path: '/drawer', component: 'exba-drawer' });
     router.register({ path: '/api-audio', component: 'exba-audio-demo' });
     router.register({ path: '/api-canvas', component: 'exba-canvas-demo' });
     router.register({ path: '/api-storage', component: 'exba-storage-demo' });
@@ -198,6 +205,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const tabs = new Map<string, { label: string; action: () => void }>();
     let activeTabId: string | null = null;
+
+    const saveTabs = () => {
+      localStorage.setItem(
+        'exba-tabs',
+        JSON.stringify(Array.from(tabs.keys())),
+      );
+      localStorage.setItem('exba-active-tab', activeTabId || '');
+    };
+
+    const loadTabs = () => {
+      const saved = localStorage.getItem('exba-tabs');
+      const active = localStorage.getItem('exba-active-tab');
+      if (saved) {
+        try {
+          const ids = JSON.parse(saved) as string[];
+          ids.forEach((id) => {
+            const item = MENU_ITEMS.find((i) => i.id === id);
+            if (item) tabs.set(id, { label: item.label, action: item.action });
+          });
+        } catch (e) {
+          console.error('Failed to restore tabs', e);
+        }
+      }
+      activeTabId = active || null;
+    };
+
+    loadTabs();
 
     const statusBar = document.getElementById('app-status-bar');
     if (statusBar) {
@@ -218,8 +252,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       tabBar.addEventListener('tab-selected', (e) => {
         const tabId = e.detail;
         if (tabId === 'home') {
+          activeTabId = null;
           router.navigate('/');
           renderTabBar(tabs, null);
+          saveTabs();
           return;
         }
         activeTabId = tabId;
@@ -227,7 +263,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (tab) {
           tab.action();
         }
+        router.navigate(`/${tabId}`);
         renderTabBar(tabs, activeTabId);
+        saveTabs();
+      });
+
+      tabBar.addEventListener('tab-closed', (e: any) => {
+        const tabId = e.detail;
+        tabs.delete(tabId);
+        if (activeTabId === tabId) {
+          activeTabId = null;
+          router.navigate('/');
+          renderTabBar(tabs, null);
+        } else {
+          renderTabBar(tabs, activeTabId);
+        }
+        saveTabs();
       });
     }
 
@@ -239,6 +290,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         item.action();
         router.navigate(`/${item.id}`);
         renderTabBar(tabs, activeTabId);
+        saveTabs();
       }
     };
 
@@ -255,7 +307,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // Initial navigation
-    router.navigate('/');
+    if (activeTabId && tabs.has(activeTabId)) {
+      const activeTab = tabs.get(activeTabId);
+      activeTab?.action();
+      router.navigate(`/${activeTabId}`);
+      renderTabBar(tabs, activeTabId);
+    } else {
+      router.navigate('/');
+      renderTabBar(tabs, null);
+    }
   } catch (e) {
     console.error('[EXBA] Fatal initialization error:', e);
     return;

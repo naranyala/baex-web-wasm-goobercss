@@ -57,22 +57,19 @@ const appContainer = css`
   margin: 0;
   padding: 0;
 `;
-
 // ─── Layout ────────────────────────────────────────────────────
 const layoutShell = css`
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 3rem);
+  min-height: 100vh;
   background: ${theme.background};
   color: ${theme.foreground};
-  padding-top: 3rem;
 `;
 
 const menuContainer = css`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
@@ -82,10 +79,11 @@ const menuContainer = css`
 
 const categoryTitle = css`
   width: 100%;
+  max-width: 720px;
   font-size: 1rem;
   font-weight: 600;
-  color: ${theme.secondary};
-  margin: 2rem 0 1rem 0;
+  color: ${theme.foreground};
+  margin: 2rem auto 1rem auto;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid ${theme.border};
   text-align: left;
@@ -101,7 +99,7 @@ const sidebarHeader = css`
 
 const sidebarSearch = css`
   width: 100%;
-  max-width: 40rem;
+  max-width: 720px;
   margin: 0 auto 2rem auto;
   display: flex;
   justify-content: center;
@@ -109,9 +107,15 @@ const sidebarSearch = css`
 
 const menuGrid = css`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
   width: 100%;
+  max-width: 720px;
+  margin: 0 auto 1.5rem auto;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 `;
 
 const mainContent = css`
@@ -119,8 +123,17 @@ const mainContent = css`
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
   min-width: 0;
   padding-bottom: 2rem;
+  overflow-y: auto;
+`;
+
+const viewContainer = css`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 
 const mainScroll = css`
@@ -402,6 +415,7 @@ export const styles = {
   sidebarSearch,
   menuGrid,
   mainContent,
+  viewContainer,
   mainScroll,
   menuItem,
   menuItemIcon,

@@ -71,6 +71,17 @@ export const MENU_CATEGORIES = [
           );
         },
       },
+      {
+        id: 'neofetch',
+        label: 'Web Neofetch',
+        icon: '🖥️',
+        code: `await EXBA.callBridge('process_ir', { type: 'SystemFetch' })`,
+        action: () => {
+          const container = document.getElementById('view-container');
+          if (container)
+            container.innerHTML = '<exba-neofetch></exba-neofetch>';
+        },
+      },
     ],
   },
   {
@@ -118,6 +129,48 @@ export const MENU_CATEGORIES = [
           const container = document.getElementById('view-container');
           if (container)
             container.innerHTML = '<exba-terminal></exba-terminal>';
+        },
+      },
+      {
+        id: 'kanban',
+        label: 'Kanban',
+        icon: '📋',
+        code: `// Kanban`,
+        action: () => {
+          const container = document.getElementById('view-container');
+          if (container) container.innerHTML = '<exba-kanban></exba-kanban>';
+        },
+      },
+      {
+        id: 'activity',
+        label: 'Activity Feed',
+        icon: '🔔',
+        code: `// Activity Feed`,
+        action: () => {
+          const container = document.getElementById('view-container');
+          if (container)
+            container.innerHTML = '<exba-activity-feed></exba-activity-feed>';
+        },
+      },
+      {
+        id: 'accordion',
+        label: 'Accordion',
+        icon: '🗂️',
+        code: `// Accordion`,
+        action: () => {
+          const container = document.getElementById('view-container');
+          if (container)
+            container.innerHTML = '<exba-accordion></exba-accordion>';
+        },
+      },
+      {
+        id: 'drawer',
+        label: 'Drawer',
+        icon: '📥',
+        code: `// Drawer`,
+        action: () => {
+          const container = document.getElementById('view-container');
+          if (container) container.innerHTML = '<exba-drawer></exba-drawer>';
         },
       },
     ],

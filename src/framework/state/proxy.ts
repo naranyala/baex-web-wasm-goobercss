@@ -1,4 +1,5 @@
 import { EXBA } from '../core/exba';
+import { ResilienceManager } from '../core/resilience';
 
 export interface StateOptions {
   onUpdate?: (newState: any) => void;
@@ -59,14 +60,19 @@ export class ReactiveStateProxy {
   }
 
   private handleUpdate(prop: string, value: any, oldValue: any) {
-    // 1. Sync with WASM if module is available
-    const patch = JSON.stringify({ [prop]: value });
-    if (EXBA.wasmModule) {
-      const wasmUpdate =
-        (window as any).wasm_update_app_state ||
-        EXBA.wasmModule.wasm_update_app_state;
-      if (typeof wasmUpdate === 'function') {
-        wasmUpdate(patch);
+    // 1. Sync with WASM if module is healthy
+    if (ResilienceManager.isWasmHealthy()) {
+      try {
+        const patch = JSON.stringify({ [prop]: value });
+        const wasmUpdate =
+          (window as any).wasm_update_app_state ||
+          EXBA.wasmModule.wasm_update_app_state;
+        if (typeof wasmUpdate === 'function') {
+          wasmUpdate(patch);
+        }
+        ResilienceManager.reportSuccess();
+      } catch (e) {
+        ResilienceManager.reportFailure(e);
       }
     }
 
@@ -79,10 +85,15 @@ export class ReactiveStateProxy {
   }
 
   public sync() {
-    if (EXBA.wasmModule) {
-      const wasmState = EXBA.wasmModule.wasm_get_app_state();
-      if (wasmState) {
-        Object.assign(this.state, wasmState);
+    if (ResilienceManager.isWasmHealthy()) {
+      try {
+        const wasmState = EXBA.wasmModule.wasm_get_app_state();
+        if (wasmState) {
+          Object.assign(this.state, wasmState);
+        }
+        ResilienceManager.reportSuccess();
+      } catch (e) {
+        ResilienceManager.reportFailure(e);
       }
     }
   }
@@ -92,13 +103,18 @@ export class ReactiveStateProxy {
   }
 
   set value(newFullState: any) {
-    const patch = JSON.stringify(newFullState);
-    if (EXBA.wasmModule) {
-      const wasmUpdate =
-        (window as any).wasm_update_app_state ||
-        EXBA.wasmModule.wasm_update_app_state;
-      if (typeof wasmUpdate === 'function') {
-        wasmUpdate(patch);
+    if (ResilienceManager.isWasmHealthy()) {
+      try {
+        const patch = JSON.stringify(newFullState);
+        const wasmUpdate =
+          (window as any).wasm_update_app_state ||
+          EXBA.wasmModule.wasm_update_app_state;
+        if (typeof wasmUpdate === 'function') {
+          wasmUpdate(patch);
+        }
+        ResilienceManager.reportSuccess();
+      } catch (e) {
+        ResilienceManager.reportFailure(e);
       }
     }
 

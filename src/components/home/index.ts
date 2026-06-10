@@ -3,6 +3,10 @@ import { ExbaComponent } from '../../framework/core/component';
 import { styles } from '../../styles';
 
 export class HomeComponent extends ExbaComponent {
+  static useShadow = false;
+  static props = {};
+  static styles = {};
+
   render() {
     return `
       <div class="${styles.menuContainer}">
@@ -23,32 +27,26 @@ export class HomeComponent extends ExbaComponent {
     super.connectedCallback();
     this.renderGridMenu();
 
-    const searchEl =
-      this.shadowRoot?.querySelector<HTMLInputElement>('#menu-search');
+    const searchEl = document.querySelector<HTMLInputElement>('#menu-search');
     if (searchEl) {
       searchEl.addEventListener('input', (e) => {
         const query = (e.target as HTMLInputElement).value;
-        // Since renderGridMenu is in view-grid.ts and looks for #menu-grid in document,
-        // we need to adapt it or just implement a local version.
-        // For now, I'll implement a local version of the filtering.
-        this.filterMenu(query);
+        const filtered = MENU_ITEMS.filter(
+          (item) =>
+            item.label.toLowerCase().includes(query.toLowerCase()) ||
+            item.id.toLowerCase().includes(query.toLowerCase()),
+        );
+        this.updateGrid(filtered);
       });
     }
   }
 
   private renderGridMenu() {
-    const grid = this.shadowRoot?.querySelector<HTMLDivElement>('#menu-grid');
-    if (!grid) return;
     this.updateGrid(MENU_ITEMS);
   }
 
-  private filterMenu(_query: string) {
-    // We can't easily use the global fuzzySearch if it's not exported, but it is in utils.ts
-    // For simplicity, I'll just call a helper or import it.
-  }
-
   private updateGrid(items: typeof MENU_ITEMS) {
-    const grid = this.shadowRoot?.querySelector<HTMLDivElement>('#menu-grid');
+    const grid = document.querySelector<HTMLDivElement>('#menu-grid');
     if (!grid) return;
 
     const itemsSet = new Set(items.map((i) => i.id));

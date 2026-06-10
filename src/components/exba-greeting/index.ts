@@ -1,32 +1,21 @@
-import { css } from 'goober';
 import { ExbaComponent } from '../../framework/core/component';
-
-const greeting = css`
-  font-family: system-ui, sans-serif;
-  padding: 1rem 1.5rem;
-  background: rgba(39, 39, 42, 0.5);
-  color: #a5b4fc;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(39, 39, 42, 0.5);
-  display: inline-block;
-  font-size: 0.875rem;
-`;
-
-const highlight = css`
-  color: #818cf8;
-  font-weight: 600;
-`;
+import { html } from '../../framework/core/dom';
 
 export class ExbaGreeting extends ExbaComponent {
-  static get observedAttributes() {
-    return ['name'];
-  }
+  static props = {
+    name: 'string',
+  };
+
+  static styles = {
+    container: `font-family: system-ui, sans-serif; padding: 1rem 1.5rem; background: rgba(39, 39, 42, 0.5); color: #a5b4fc; border-radius: 0.75rem; border: 1px solid rgba(39, 39, 42, 0.5); display: inline-block; font-size: 0.875rem;`,
+    highlight: `color: #818cf8; font-weight: 600;`,
+  };
 
   render() {
-    const name = this.getAttribute('name') || 'Guest';
-    return `
-      <div class="${greeting}">
-        Hello, <span class="${highlight}">${name}</span>! Welcome to EXBA Framework.
+    const name = this.state.name || 'Guest';
+    return html`
+      <div class="container">
+        Hello, <span class="highlight">${name}</span>! Welcome to EXBA Framework.
       </div>
     `;
   }

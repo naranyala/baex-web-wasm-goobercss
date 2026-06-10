@@ -1,11 +1,11 @@
-import type { BridgeAPI, ExbaBridge } from '../../bridge/types';
-import { createTypedBridge } from '../../bridge/types';
+import type { ExbaBridge } from '../../bridge/types';
 import { IRProcessor } from './processor';
+import { ResilienceManager } from './resilience';
 import type { IRBundle } from './schema';
 
 export class EXBA {
   static bridge: ExbaBridge | null = null;
-  static api: BridgeAPI | null = null;
+  private static _api: any = null;
   static DEBUG = true;
   static wasmModule: any = null;
   static subscriptions = new Map<string, Set<(val: any) => void>>();
@@ -66,7 +66,34 @@ export class EXBA {
 
   static setBridge(bridge: ExbaBridge) {
     EXBA.bridge = bridge;
-    EXBA.api = createTypedBridge(bridge);
+    EXBA._api = EXBA.createApiProxy(bridge);
+  }
+
+  static get api(): any {
+    if (!EXBA._api) {
+      throw new Error('EXBA Bridge not initialized. Call setBridge first.');
+    }
+    return EXBA._api;
+  }
+
+  private static createApiProxy(bridge: ExbaBridge) {
+    return new Proxy(
+      {},
+      {
+        get: (_target, prop: string) => {
+          return async (...args: any[]) => {
+            try {
+              const result = await bridge.call(prop, ...args);
+              ResilienceManager.reportSuccess();
+              return result;
+            } catch (e) {
+              ResilienceManager.reportFailure(e);
+              throw e;
+            }
+          };
+        },
+      },
+    );
   }
 
   static register(tagName: string, componentClass: any) {
@@ -103,5 +130,59 @@ export class EXBA {
 
   static dispatchIR(bundle: IRBundle) {
     IRProcessor.process(bundle);
+  }
+
+  // ─── Component Helpers ──────────────────────────────────────
+  private static isBatching = false;
+  private static pendingNotifications = new Set<string>();
+
+  static createSignal<T>(initialValue: T, key?: string) {
+    let val = initialValue;
+    const signalKey = key || `sig_${Math.random().toString(36).substr(2, 9)}`;
+
+    return {
+      get value() {
+        return val;
+      },
+      set value(newVal: T) {
+        if (val === newVal) return;
+        val = newVal;
+        if (EXBA.isBatching) {
+          EXBA.pendingNotifications.add(signalKey);
+        } else {
+          EXBA.notify(signalKey, newVal);
+        }
+      },
+      subscribe: (cb: (v: T) => void) => EXBA.subscribe(signalKey, cb),
+      key: signalKey,
+    };
+  }
+
+  static createComputed<T>(fn: () => T, dependencies: string[]) {
+    const signal = EXBA.createSignal(fn());
+    dependencies.forEach((dep) => {
+      EXBA.subscribe(dep, () => {
+        signal.value = fn();
+      });
+    });
+    return signal;
+  }
+
+  static batch(fn: () => void) {
+    EXBA.isBatching = true;
+    try {
+      fn();
+    } finally {
+      EXBA.isBatching = false;
+      const keys = Array.from(EXBA.pendingNotifications);
+      EXBA.pendingNotifications.clear();
+      keys.forEach((key) => {
+        // We don't have the "current value" here in a unified way if it's just keys,
+        // but notify() handles calling subscribers.
+        // For ReactiveStateProxy integration, it works because notify triggers the cb
+        // which usually pulls from state.
+        EXBA.notify(key, null);
+      });
+    }
   }
 }

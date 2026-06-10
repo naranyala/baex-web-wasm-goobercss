@@ -1,5 +1,5 @@
 import { styles } from '../styles';
-import { MENU_CATEGORIES, MENU_ITEMS } from './constants';
+import { MENU_CATEGORIES, type MENU_ITEMS } from './constants';
 import { fuzzySearch } from './utils';
 import '../framework/state/theme';
 
@@ -67,41 +67,9 @@ export function initApp() {
       <div class="${styles.layoutShell}">
         <tab-bar id="main-tab-bar"></tab-bar>
         <main class="${styles.mainContent}">
-          <div id="view-container"></div>
+          <div id="view-container" class="${styles.viewContainer}"></div>
         </main>
       </div>
     </exba-theme-provider>
   `;
-
-  // The Home page is the Grid Menu
-  const homePage = document.createElement('div');
-  homePage.id = 'menu-container';
-  homePage.className = styles.menuContainer;
-  homePage.innerHTML = `
-    <div class="${styles.sidebarSearch}">
-      <input 
-          type="text" 
-          id="menu-search" 
-          class="${styles.searchInput}" 
-          placeholder="Search menu..." 
-      />
-    </div>
-    <div id="menu-grid"></div>
-  `;
-
-  const container = document.getElementById('view-container');
-  if (container) {
-    container.appendChild(homePage);
-  }
-
-  const searchEl = document.querySelector<HTMLInputElement>('#menu-search');
-  if (searchEl) {
-    searchEl.addEventListener('input', (e) => {
-      const query = (e.target as HTMLInputElement).value;
-      const filtered = fuzzySearch(query, MENU_ITEMS);
-      renderGridMenu(filtered);
-    });
-  }
-
-  renderGridMenu(MENU_ITEMS);
 }
