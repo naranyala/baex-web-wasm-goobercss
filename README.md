@@ -1,94 +1,89 @@
-# EXBA Framework
+# EXBA Framework (Extended Browser Api)
 
-EXBA is a high-performance, WebAssembly-first web framework designed to bridge Rust-powered business logic with a reactive TypeScript frontend. It is optimized for applications requiring complex state transitions, heavy computation, and surgical UI updates.
+EXBA is a modular web framework designed to bridge Rust-powered business logic with a reactive TypeScript frontend. It utilizes a WebAssembly-first architecture to deliver high-performance state management and surgical UI updates.
 
-## Architecture: Two-Tier Execution Model
+## Architecture
 
-EXBA utilizes a dual-tier execution model to balance native performance with browser flexibility:
+The codebase follows a Modular Layered Architecture to ensure strict separation of concerns and maintainability.
 
-1. **Tier 1: Rust-WASM Core (The Brain)**:
-   - Manages the canonical state and core business rules.
-   - Generates Intermediate Representation (IR) bundles for DOM mutations.
-   - Performs computationally intensive tree diffing and data processing.
+### Layered Structure
 
-2. **Tier 2: TypeScript Shell (The Interface)**:
-   - Reactive components with surgical DOM updates via a tree-diffing patcher.
-   - Type-safe proxy bridge for zero-configuration WebAssembly method calls.
-   - Resilient fallback logic (such as local storage state caching) to maintain reactivity if the WebAssembly engine is unavailable.
+*   **core/**: The EXBA Framework Engine. Contains reactivity (Signals/Effects), DOM patching, routing, and base component lifecycle logic.
+*   **wasm/**: The Native Logic Layer. High-performance Rust code compiled to WebAssembly. Manages canonical state and business rules.
+*   **bridge/**: The Interop Layer. Handles the communication between TypeScript and the WebAssembly module.
+*   **shell/**: The Application Orchestrator. Manages the main entry point, global configurations, and the theme system.
+*   **components/**: The UI Library.
+    *   `shell/`: Dashboard components like the status bar and tab bar.
+    *   `widgets/`: Reusable primitives such as accordions and date pickers.
+    *   `demos/`: High-level feature demonstrations including Kanban and Mindmaps.
+*   **utils/**: Generic TypeScript utility helpers used across the project.
+*   **tools/**: Internal development tools, including the API documentation generator.
 
-### Third-Party DOM Persistence
+## Core Concepts
 
-The framework's virtual DOM patcher supports the `data-persist` attribute. When applied to container elements, it instructs the patcher to preserve dynamically injected sub-trees. This allows seamless integration of third-party libraries (such as Cytoscape.js and Vis-Network) without their DOM states being overwritten during component state updates.
+### Signal-Based Reactivity
+EXBA uses a granular reactivity system. Signals are lightweight value holders that automatically notify subscribers when their values change.
 
-## Key Features
+### Surgical DOM Patching
+Instead of re-rendering entire components, EXBA's patching engine performs targeted updates to text content, attributes, and classes. It supports a two-tier execution model where high-performance diffing can be performed in Rust.
 
-- **Surgical Reactivity**: Signal-based state management with automatic dependency tracking, computed states, and batching.
-- **Unified Component Pattern**: Class-based Web Components with static property declarations and scoped, auto-injected style objects.
-- **WASM Bridge**: Direct execution of Rust methods via `EXBA.api.methodName(...)`.
-- **Tagged Templates**: Structured templates compiled via the `html` tagged literal for efficient DOM patching.
-- **Robust Persistence**: Built-in persistence layers for application sessions, navigation, and user data.
+### WASM-First Interop
+Business logic resides in Rust. The TypeScript layer communicates with Rust through a type-safe bridge, allowing for direct execution of native methods.
 
-## Getting Started
+## Code Examples
 
-### Installation
+### Rust: Exporting WASM Functions
+Defined in the `wasm/` directory, Rust functions are exported using `wasm_bindgen`.
 
-Install dependencies using your preferred package manager:
+```rust
+use wasm_bindgen::prelude::*;
 
-```bash
-bun install
+#[wasm_bindgen]
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+#[wasm_bindgen]
+pub fn fibonacci(n: i32) -> i32 {
+    if n <= 1 { return n; }
+    let mut a = 0;
+    let mut b = 1;
+    for _ in 0..n {
+        let temp = a + b;
+        a = b;
+        b = temp;
+    }
+    a
+}
 ```
 
-### Development Workflow
-
-Build the WebAssembly module and start the development server:
-
-```bash
-bun run build
-bun run dev
-```
-
-### Verification
-
-Run the integration and core test suite:
-
-```bash
-bun run test
-```
-
-## Technical Stack
-
-- **Core**: Rust (wasm-bindgen, serde)
-- **Frontend**: TypeScript, Custom Web Components
-- **Styling**: Unified Goober-based design tokens
-- **Build System**: Rsbuild / Rspack
-- **Test Suite**: Vitest (integration and unit testing)
-
-## Code Example: Reactive Component
-
-The following example demonstrates a custom component with static properties, scoped styles, and lifecycle hooks:
+### TypeScript: Reactive Component
+Components extend `ExbaComponent` and use static property and style definitions.
 
 ```typescript
-import { ExbaComponent, html } from '../framework';
+import { ExbaComponent } from '@core/lifecycle/component';
+import { html } from '@core/dom/dom';
 
-export class MyCounter extends ExbaComponent {
-  // Define observed properties
-  static props = { initial: 'number' };
+export class SimpleCounter extends ExbaComponent {
+  static props = {
+    initial: 'number'
+  };
 
-  // Define scoped stylesheet rules
   static styles = {
     container: 'padding: 1rem; border: 1px solid var(--exba-border);',
-    btn: 'background: var(--exba-primary); color: white; border-radius: 0.5rem; padding: 0.5rem 1rem;'
+    value: 'font-weight: bold; color: var(--exba-primary);'
   };
 
   protected onMount() {
+    // Create a local signal scoped to this component
     this.count = this.useSignal(this.state.initial || 0);
   }
 
   render() {
     return html`
       <div class="container">
-        <h3>Count: ${this.count.value}</h3>
-        <button class="btn" onclick="this.getRootNode().host.count.value++">
+        <span class="value">Count: ${this.count.value}</span>
+        <button onclick="this.getRootNode().host.count.value++">
           Increment
         </button>
       </div>
@@ -97,14 +92,57 @@ export class MyCounter extends ExbaComponent {
 }
 ```
 
-## Component Library
+### TypeScript: Bridge Execution
+Call native Rust methods from TypeScript using the unified bridge.
 
-The repository contains pre-built reactive component demonstrations:
+```typescript
+import { EXBA } from '@core/lifecycle/exba';
 
-- **Kanban Board**: Drag-and-drop task workflow with local storage persistence and card editing capability.
-- **Mindmap (Cytoscape.js)**: Interactive graph visualization utilizing the COSE layout physics engine with dynamic node addition and image export.
-- **Mindmap (Vis-Network)**: Interactive spring physics simulator with canvas export capabilities.
-- **Monthly Date Picker**: Month-by-month calendar view with quick presets and date selection.
-- **Activity Feed**: Signal-driven event tracking component logging system changes.
-- **Web Neofetch**: Hardware and operating system metrics collector.
-- **UI Primitives**: Accordions, Drawers, and Tab Bars with persistent state selectors.
+async function calculate() {
+  // Call Rust 'add' method through the bridge
+  const sum = await EXBA.callBridge<number>('add', 10, 20);
+  console.log(`Sum from Rust: ${sum}`);
+
+  // Call Rust 'fibonacci' method
+  const fib = await EXBA.callBridge<number>('fibonacci', 10);
+  console.log(`Fibonacci(10) from Rust: ${fib}`);
+}
+```
+
+## Getting Started
+
+### Installation
+
+Install dependencies:
+```bash
+bun install
+```
+
+### Development
+
+Build the WebAssembly module and start the dev server:
+```bash
+bun run build
+bun run dev
+```
+
+### Testing
+
+Execute the test suite:
+```bash
+bun run test
+```
+
+## API Documentation
+
+The project includes a custom documentation generator located in `tools/docs-api-generator`. It parses both TypeScript and Rust sources to generate an interactive documentation site.
+
+Generate documentation:
+```bash
+bun run docs:gen
+```
+
+Serve documentation:
+```bash
+bun run docs:serve
+```
