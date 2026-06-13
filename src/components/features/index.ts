@@ -9,6 +9,7 @@ import { SampleTaskComponent } from './sample-task';
 import { SettingsComponent } from './settings';
 import { TerminalComponent } from './terminal';
 import { SqliteExplorer } from './sqlite-explorer';
+import { LLMChatComponent } from './llm-chat';
 
 /**
  * Registers all high-level feature and demo components.
@@ -24,4 +25,5 @@ export function registerFeatures() {
   EXBA.register('exba-settings', SettingsComponent);
   EXBA.register('exba-terminal', TerminalComponent);
   EXBA.register('exba-sqlite-explorer', SqliteExplorer);
+  EXBA.register('exba-llm-chat', LLMChatComponent);
 }

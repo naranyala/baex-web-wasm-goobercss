@@ -194,6 +194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     router.register({ path: '/my-widget', component: 'exba-my-widget' });
     router.register({ path: '/my-widget', component: 'exba-my-widget' });
     router.register({ path: '/sample-task', component: 'exba-sample-task' });
+    router.register({ path: '/llm-chat', component: 'exba-llm-chat' });
     router.register({ path: '/settings', component: 'exba-settings' });
     router.register({ path: '/profile', component: 'exba-profile' });
     router.register({ path: '/analytics', component: 'exba-analytics' });
@@ -202,6 +203,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     router.register({ path: '/kanban', component: 'exba-kanban' });
     router.register({ path: '/datepicker', component: 'exba-datepicker' });
     router.register({ path: '/activity', component: 'exba-activity-feed' });
+    router.register({ path: '/button-variants', component: 'exba-button-demo' });
     router.register({ path: '/accordion', component: 'exba-accordion' });
     router.register({ path: '/drawer', component: 'exba-drawer' });
     router.register({

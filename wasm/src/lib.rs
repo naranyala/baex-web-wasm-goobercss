@@ -124,6 +124,15 @@ fn process_ir_logic(command: IRCommand) -> IRResult {
 
             let instructions = crate::dom_engine::diff(&old_root, &new_root);
             IRResult::DiffResult(instructions)
+        },
+        IRCommand::LLMChatProcess { prompt, has_attachments } => {
+            info!("LLM Chat processing requested: {}", prompt);
+            let response = if has_attachments {
+                format!("I've analyzed the attachments you provided alongside your message: \"{}\". How would you like to proceed?", prompt)
+            } else {
+                format!("I've processed your request: \"{}\". As an EXBA-powered multimodal model, I can assist with various tasks.", prompt)
+            };
+            IRResult::LLMChatResult { text: response }
         }
     }
 }

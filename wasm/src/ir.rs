@@ -82,6 +82,7 @@ pub enum IRCommand {
     EditTask { id: String, title: String, priority: String, tags: Vec<String> },
     SyncKanban { tasks: Vec<crate::kanban::KanbanTask> },
     PerformDiff { old_html: String, new_html: String },
+    LLMChatProcess { prompt: String, has_attachments: bool },
 }
 
 /// Results returned from the Rust core to the TS Bridge.
@@ -97,6 +98,7 @@ pub enum IRResult {
     SystemInfo(crate::sys_info::SystemInfo),
     KanbanData(Vec<crate::kanban::KanbanTask>),
     DiffResult(Vec<crate::dom_engine::DomInstruction>),
+    LLMChatResult { text: String },
 }
 
 #[cfg(test)]

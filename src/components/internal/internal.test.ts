@@ -169,7 +169,7 @@ describe('Internal Component Suite', () => {
       expect(grid?.innerHTML).toContain('Browser API Exploration');
     });
 
-    it('should filter items on search input', () => {
+    it('should filter items on search input', async () => {
       document.body.innerHTML = '<exba-home data-testid="home"></exba-home>';
       const input = document.getElementById('menu-search') as HTMLInputElement;
       expect(input).not.toBeNull();
@@ -177,13 +177,15 @@ describe('Internal Component Suite', () => {
       // Input search term that matches nothing
       input.value = 'nonexistent-menu-item-abc';
       fireEvent.input(input);
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const grid = document.getElementById('menu-grid');
-      expect(grid?.innerHTML).toBe('');
+      expect(grid?.innerHTML.trim()).toBe('');
 
       // Input search term that matches 'Settings'
       input.value = 'Settings';
       fireEvent.input(input);
+      await new Promise((resolve) => setTimeout(resolve, 10));
       expect(grid?.innerHTML).toContain('Settings');
     });
   });

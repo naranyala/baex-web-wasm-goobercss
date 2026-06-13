@@ -96,6 +96,13 @@ export const MENU_CATEGORIES = [
         component: 'exba-sample-task',
       },
       {
+        id: 'llm-chat',
+        label: 'LLM Chat (Multimodal)',
+        icon: '🤖',
+        code: `await EXBA.api.process_ir(JSON.stringify({ type: 'LLMChatProcess', ... }))`,
+        component: 'exba-llm-chat',
+      },
+      {
         id: 'settings',
         label: 'Settings',
         icon: '🛠️',
@@ -136,6 +143,13 @@ export const MENU_CATEGORIES = [
         icon: '🔔',
         code: `// Activity Feed`,
         component: 'exba-activity-feed',
+      },
+      {
+        id: 'button-variants',
+        label: 'Button Variants',
+        icon: '🔘',
+        code: `// Flutter-inspired Button Variants`,
+        component: 'exba-button-demo',
       },
       {
         id: 'accordion',

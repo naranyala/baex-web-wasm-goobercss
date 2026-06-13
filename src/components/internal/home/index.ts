@@ -16,21 +16,22 @@ export class HomeComponent extends ExbaComponent {
   static props = {};
   static styles = {};
 
-  protected state = this.useSignal({
-    query: '',
-    collapsedCategories: {
-      'component-examples': true,
-      'browser-api': true,
-    } as Record<string, boolean>
-  });
+  // Use explicit signals for core UI state
+  private query = this.useSignal('');
+  private collapsedCategories = this.useSignal({
+    'component-examples': true,
+    'browser-api': true,
+  } as Record<string, boolean>);
 
   render() {
-    const { query, collapsedCategories } = this.state.value;
-    const filteredItems = query
+    const q = this.query.value;
+    const collapsed = this.collapsedCategories.value;
+
+    const filteredItems = q
       ? MENU_ITEMS.filter(
           (item) =>
-            item.label.toLowerCase().includes(query.toLowerCase()) ||
-            item.id.toLowerCase().includes(query.toLowerCase()),
+            item.label.toLowerCase().includes(q.toLowerCase()) ||
+            item.id.toLowerCase().includes(q.toLowerCase()),
         )
       : MENU_ITEMS;
 
@@ -40,10 +41,11 @@ export class HomeComponent extends ExbaComponent {
       <div class="${styles.menuContainer}">
         <div class="${styles.sidebarSearch}">
           <input 
+              id="menu-search"
               type="text" 
               class="${styles.searchInput}" 
               placeholder="Search menu..." 
-              .value="${query}"
+              .value="${q}"
               @input="${(e: any) => this.handleSearch(e.target.value)}"
           />
         </div>
@@ -54,7 +56,8 @@ export class HomeComponent extends ExbaComponent {
             );
             if (categoryItems.length === 0) return '';
 
-            const isCollapsed = query === '' && collapsedCategories[category.id];
+            // A section is collapsed only if query is empty AND its id is in the collapsed set
+            const isCollapsed = q === '' && collapsed[category.id] === true;
 
             return html`
               <div class="${styles.sectionCard}">
@@ -82,14 +85,13 @@ export class HomeComponent extends ExbaComponent {
     `;
   }
 
-  private handleSearch(query: string) {
-    this.setState({ query });
+  private handleSearch(val: string) {
+    this.query.value = val;
   }
 
   private toggleCategory(id: string) {
-    const collapsed = { ...this.state.value.collapsedCategories };
-    collapsed[id] = !collapsed[id];
-    this.setState({ collapsedCategories: collapsed });
+    const next = { ...this.collapsedCategories.value };
+    next[id] = !next[id];
+    this.collapsedCategories.value = next;
   }
 }
-
